@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+/frontend/node_modules
+/mobile/pubspec.lock
+
+# Backend
+bin/
+obj/
+.vs/
+.vscode/
+*.db
+*.sqlite
+*.sqlite3
+appsettings.local.json
+appsettings.Development.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+
+# Frontend
+.nuxt
+.output
+.cache/
+.vuepress/dist
+*.tsbuildinfo
+
+# Mobile
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+.metadata
+
+# Temporary files
+*.tmp
+.temp/
+temp/
