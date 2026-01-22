@@ -276,19 +276,4 @@ header {
     gap: 2rem;
   }
 }
-
-@media (max-width: 480px) {
-  .footer {
-    padding: 1.5rem 1rem;
-  }
-
-  .footer-content {
-    gap: 1rem;
-  }
-
-  .footer-links {
-    gap: 1rem;
-    font-size: 0.9rem;
-  }
-}
 </style>
