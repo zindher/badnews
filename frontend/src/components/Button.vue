@@ -39,40 +39,20 @@ defineEmits(['click'])
 </script>
 
 <style scoped>
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  gap: 0.5rem;
-  touch-action: manipulation;
-  position: relative;
-  font-family: inherit;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
+/* Specific Button component variants and states only */
 .btn:active {
   transform: scale(0.98);
 }
 
 /* PRIMARY VARIANT */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(91, 75, 159, 0.3);
 }
 
 .btn-primary:active:not(:disabled) {
-  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 1px 4px rgba(91, 75, 159, 0.3);
 }
 
 /* SECONDARY VARIANT */
@@ -100,20 +80,12 @@ defineEmits(['click'])
 /* GHOST VARIANT */
 .btn-ghost {
   background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
 }
 
 .btn-ghost:active:not(:disabled) {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-/* DISABLED STATE */
-.btn-disabled,
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
+  background: rgba(91, 75, 159, 0.1);
 }
 
 /* LOADING STATE */
@@ -161,15 +133,6 @@ defineEmits(['click'])
 
   .btn:active {
     transform: scale(1);
-  }
-}
-
-/* RESPONSIVE SIZING */
-@media (max-width: 480px) {
-  .btn {
-    font-size: 0.95rem;
-    padding: 0.65rem 1.25rem;
-    min-height: 40px;
   }
 }
 </style>

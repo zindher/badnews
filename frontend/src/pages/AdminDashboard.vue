@@ -152,22 +152,9 @@ const contactUser = (userId) => {
 </script>
 
 <style scoped>
+/* Specific AdminDashboard styles only */
 .admin-dashboard {
-  min-height: 100vh;
   background: #f9fafb;
-  padding: 2rem 0;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-h1 {
-  margin: 0 0 2rem 0;
-  font-size: 2rem;
-  color: #333;
 }
 
 .stats-grid {
@@ -178,40 +165,11 @@ h1 {
 }
 
 .stat-box {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--primary-color);
 }
 
 .stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #667eea;
-}
-
-.stat-label {
-  color: #666;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
-
-.sections {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.section {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.section h2 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
+  color: var(--primary-color);
 }
 
 .empty {
@@ -220,23 +178,9 @@ h1 {
   color: #999;
 }
 
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
 .admin-table th {
   background: #f9fafb;
-  padding: 1rem;
-  text-align: left;
   border-bottom: 2px solid #e2e8f0;
-  font-weight: 600;
-  color: #666;
-}
-
-.admin-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .status {
@@ -262,27 +206,9 @@ h1 {
   color: #991b1b;
 }
 
-.users-list {
-  space-y: 1rem;
-}
-
 .user-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
   background: #f9fafb;
-  border-radius: 4px;
   margin-bottom: 0.5rem;
-}
-
-.user-info {
-  flex: 1;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #333;
 }
 
 .user-email {
@@ -290,34 +216,8 @@ h1 {
   color: #666;
 }
 
-.user-stats {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.disputes-list {
-  space-y: 1rem;
-}
-
 .dispute-item {
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  border-left: 4px solid #667eea;
-}
-
-.dispute-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.dispute-title {
-  font-weight: 600;
-  color: #333;
+  border-left: 4px solid var(--primary-color);
 }
 
 .priority {
@@ -342,23 +242,9 @@ h1 {
   color: #1e40af;
 }
 
-.dispute-desc {
-  margin: 0.5rem 0;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.dispute-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
 .action-btn {
-  padding: 0.5rem 1rem;
   border: 1px solid #e2e8f0;
   background: white;
-  border-radius: 4px;
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
@@ -367,7 +253,7 @@ h1 {
 
 .action-btn:hover {
   background: #f3f4f6;
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 </style>

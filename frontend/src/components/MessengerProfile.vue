@@ -138,18 +138,16 @@ const withdrawFunds = () => {
 </script>
 
 <style scoped>
+/* Specific MessengerProfile component styles only */
 .messenger-profile {
-  background: white;
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .profile-header {
   display: flex;
   gap: 1.5rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
   align-items: center;
 }
@@ -177,10 +175,6 @@ const withdrawFunds = () => {
   gap: 0.5rem;
   margin-bottom: 0.75rem;
   font-size: 0.95rem;
-}
-
-.stars {
-  font-weight: bold;
 }
 
 .count {
@@ -217,13 +211,7 @@ const withdrawFunds = () => {
 .stat-value {
   font-size: 1.75rem;
   font-weight: bold;
-  color: #667eea;
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 0.5rem;
+  color: var(--primary-color);
 }
 
 .profile-actions {
@@ -231,53 +219,6 @@ const withdrawFunds = () => {
   gap: 1rem;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #e2e8f0;
-}
-
-.btn {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-success {
-  background: #10b981;
-  color: white;
-}
-
-.btn-success:hover:not(:disabled) {
-  background: #059669;
-}
-
-.btn-warning {
-  background: #f59e0b;
-  color: white;
-}
-
-.btn-warning:hover:not(:disabled) {
-  background: #d97706;
-}
-
-.btn-secondary {
-  background: white;
-  border: 1px solid #e2e8f0;
-  color: #666;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #f9fafb;
-}
-
-.profile-sections {
-  padding: 2rem;
 }
 
 .section {
@@ -288,7 +229,7 @@ const withdrawFunds = () => {
   margin: 0 0 1rem 0;
   color: #333;
   font-size: 1.1rem;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid var(--primary-color);
   padding-bottom: 0.5rem;
 }
 
@@ -297,10 +238,6 @@ const withdrawFunds = () => {
   justify-content: space-between;
   padding: 0.75rem 0;
   border-bottom: 1px solid #e2e8f0;
-}
-
-.info-item:last-child, .perf-item:last-child {
-  border-bottom: none;
 }
 
 .label {
@@ -319,10 +256,6 @@ const withdrawFunds = () => {
   border-radius: 4px;
 }
 
-.recent-list {
-  space-y: 0.5rem;
-}
-
 .recent-item {
   display: flex;
   justify-content: space-between;
@@ -331,10 +264,6 @@ const withdrawFunds = () => {
   background: #f9fafb;
   border-radius: 4px;
   margin-bottom: 0.5rem;
-}
-
-.recent-item:last-child {
-  margin-bottom: 0;
 }
 
 .name {
@@ -387,10 +316,6 @@ const withdrawFunds = () => {
 
   .profile-actions {
     flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
   }
 }
 </style>

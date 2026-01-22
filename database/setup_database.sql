@@ -2,6 +2,21 @@
 -- BadNews Project - Database Setup Script
 -- SQL Server 2019+
 -- Created: January 21, 2026
+-- Updated: January 21, 2026
+-- 
+-- Description:
+-- Complete database schema for BadNews platform supporting:
+-- - Buyers: Users who place orders for personalized messages
+-- - Messengers: Users who deliver personalized messages via calls
+-- - Admins: Platform administrators
+--
+-- Features:
+-- - Three-tier role-based access control
+-- - Order management with full lifecycle tracking
+-- - Call retry system (3 attempts per day for 3 days)
+-- - Payment processing integration (Mercado Pago)
+-- - Messaging and dispute resolution
+-- - Withdrawal management for messengers
 -- ================================================================
 
 -- Step 1: Create Database
@@ -25,37 +40,79 @@ DROP TABLE IF EXISTS dbo.Disputes;
 DROP TABLE IF EXISTS dbo.Payments;
 DROP TABLE IF EXISTS dbo.CallAttempts;
 DROP TABLE IF EXISTS dbo.Orders;
+DROP TABLE IF EXISTS dbo.Messengers;
 DROP TABLE IF EXISTS dbo.Users;
+DBCC CHECKIDENT ('Orders', RESEED, 0)
+DBCC CHECKIDENT ('CallAttempts', RESEED, 0)
+DBCC CHECKIDENT ('Payments', RESEED, 0)
+DBCC CHECKIDENT ('CallRetries', RESEED, 0)
+DBCC CHECKIDENT ('Withdrawals', RESEED, 0)
+DBCC CHECKIDENT ('Disputes', RESEED, 0)
+DBCC CHECKIDENT ('Messages', RESEED, 0)
+GO
 */
 
 -- Step 3: Create Users Table
+-- This is the core table for all user types (Buyer, Messenger, Admin)
+-- Role field determines the type of user and their permissions
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Users')
 BEGIN
     CREATE TABLE dbo.Users (
         Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
         Email NVARCHAR(255) NOT NULL UNIQUE,
         PasswordHash NVARCHAR(MAX) NOT NULL,
-        Name NVARCHAR(255) NOT NULL,
-        Role NVARCHAR(50) NOT NULL CHECK (Role IN ('buyer', 'messenger', 'admin')),
         PhoneNumber NVARCHAR(20),
-        AvatarUrl NVARCHAR(500),
-        Bio NVARCHAR(1000),
-        IsAvailable BIT DEFAULT 1,
-        Rating DECIMAL(3,2) DEFAULT 0,
-        CompletedOrders INT DEFAULT 0,
-        TotalEarnings DECIMAL(10,2) DEFAULT 0,
-        PendingEarnings DECIMAL(10,2) DEFAULT 0,
+        FirstName NVARCHAR(255) NOT NULL,
+        LastName NVARCHAR(255) NOT NULL,
+        Role NVARCHAR(50) NOT NULL CHECK (Role IN ('Buyer', 'Messenger', 'Admin')),
+        IsActive BIT DEFAULT 1,
         LastLogin DATETIME2,
         CreatedAt DATETIME2 DEFAULT GETUTCDATE(),
-        UpdatedAt DATETIME2 DEFAULT GETUTCDATE()
+        UpdatedAt DATETIME2 DEFAULT GETUTCDATE(),
+        
+        -- Timezone support
+        PreferredTimezone NVARCHAR(100) DEFAULT 'America/Mexico_City',
+        PreferredCallTime NVARCHAR(100),
+        
+        -- Email verification
+        EmailVerified BIT DEFAULT 0,
+        EmailVerificationToken NVARCHAR(500),
+        EmailVerificationTokenExpiry DATETIME2
     )
     CREATE INDEX IX_Users_Email ON dbo.Users(Email)
     CREATE INDEX IX_Users_Role ON dbo.Users(Role)
+    CREATE INDEX IX_Users_IsActive ON dbo.Users(IsActive)
     PRINT 'Table Users created successfully'
 END
 GO
 
--- Step 4: Create Orders Table
+-- Step 4: Create Messengers Table
+-- Extended profile for messenger users (users with Role = 'Messenger')
+-- This table stores messenger-specific data
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Messengers')
+BEGIN
+    CREATE TABLE dbo.Messengers (
+        Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+        UserId UNIQUEIDENTIFIER NOT NULL UNIQUE,
+        IsAvailable BIT DEFAULT 1,
+        AverageRating DECIMAL(3,2) DEFAULT 0,
+        TotalCompletedOrders INT DEFAULT 0,
+        TotalEarnings DECIMAL(12,2) DEFAULT 0,
+        PendingBalance DECIMAL(12,2) DEFAULT 0,
+        AvatarUrl NVARCHAR(500),
+        Bio NVARCHAR(1000),
+        CreatedAt DATETIME2 DEFAULT GETUTCDATE(),
+        UpdatedAt DATETIME2 DEFAULT GETUTCDATE(),
+        
+        CONSTRAINT FK_Messengers_User FOREIGN KEY (UserId) REFERENCES dbo.Users(Id) ON DELETE CASCADE
+    )
+    CREATE INDEX IX_Messengers_UserId ON dbo.Messengers(UserId)
+    CREATE INDEX IX_Messengers_IsAvailable ON dbo.Messengers(IsAvailable)
+    PRINT 'Table Messengers created successfully'
+END
+GO
+
+
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Orders')
 BEGIN
     CREATE TABLE dbo.Orders (
@@ -68,12 +125,19 @@ BEGIN
         Category NVARCHAR(100),
         WordCount INT,
         EstimatedDuration INT,
-        TotalPrice DECIMAL(10,2) NOT NULL,
+        TotalPrice DECIMAL(12,2) NOT NULL,
         Status NVARCHAR(50) DEFAULT 'pending' CHECK (Status IN ('pending', 'accepted', 'in_progress', 'completed', 'cancelled', 'failed')),
         PaymentStatus NVARCHAR(50) DEFAULT 'pending' CHECK (PaymentStatus IN ('pending', 'completed', 'refunded')),
+        
+        -- Retry tracking (3 retries per day, up to 3 days)
+        CallAttempts INT DEFAULT 0,
+        LastRetryDate DATETIME2,
+        NextRetryDate DATETIME2,
+        
         Notes NVARCHAR(1000),
         CreatedAt DATETIME2 DEFAULT GETUTCDATE(),
         UpdatedAt DATETIME2 DEFAULT GETUTCDATE(),
+        CompletedAt DATETIME2,
         
         CONSTRAINT FK_Orders_Buyer FOREIGN KEY (BuyerId) REFERENCES dbo.Users(Id),
         CONSTRAINT FK_Orders_Messenger FOREIGN KEY (AcceptedMessengerId) REFERENCES dbo.Users(Id)
@@ -81,12 +145,15 @@ BEGIN
     CREATE INDEX IX_Orders_BuyerId ON dbo.Orders(BuyerId)
     CREATE INDEX IX_Orders_MessengerId ON dbo.Orders(AcceptedMessengerId)
     CREATE INDEX IX_Orders_Status ON dbo.Orders(Status)
+    CREATE INDEX IX_Orders_PaymentStatus ON dbo.Orders(PaymentStatus)
     CREATE INDEX IX_Orders_CreatedAt ON dbo.Orders(CreatedAt)
     PRINT 'Table Orders created successfully'
 END
 GO
 
--- Step 5: Create CallAttempts Table
+-- Step 6: Create CallAttempts Table
+-- Tracks each call attempt made for an order, including Twilio integration
+-- Supports call recording and retry tracking
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CallAttempts')
 BEGIN
     CREATE TABLE dbo.CallAttempts (
@@ -116,14 +183,15 @@ BEGIN
 END
 GO
 
--- Step 6: Create Payments Table
+-- Step 7: Create Payments Table
+-- Tracks payment transactions for orders using Mercado Pago integration
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Payments')
 BEGIN
     CREATE TABLE dbo.Payments (
         Id INT PRIMARY KEY IDENTITY(1,1),
         OrderId INT NOT NULL,
         BuyerId UNIQUEIDENTIFIER NOT NULL,
-        Amount DECIMAL(10,2) NOT NULL,
+        Amount DECIMAL(12,2) NOT NULL,
         Currency NVARCHAR(10) DEFAULT 'MXN',
         Status NVARCHAR(50) DEFAULT 'pending' CHECK (Status IN ('pending', 'completed', 'failed', 'refunded')),
         ExternalPaymentId NVARCHAR(255),
@@ -144,7 +212,8 @@ BEGIN
 END
 GO
 
--- Step 7: Create Messages Table
+-- Step 8: Create Messages Table
+-- In-app messaging between buyer and messenger for order coordination
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Messages')
 BEGIN
     CREATE TABLE dbo.Messages (
@@ -164,7 +233,8 @@ BEGIN
 END
 GO
 
--- Step 8: Create CallRetries Table
+-- Step 9: Create CallRetries Table
+-- Schedules and tracks retry attempts (max 3 per day for 3 days = 9 total)
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CallRetries')
 BEGIN
     CREATE TABLE dbo.CallRetries (
@@ -187,13 +257,14 @@ BEGIN
 END
 GO
 
--- Step 9: Create Withdrawals Table
+-- Step 10: Create Withdrawals Table
+-- Manages withdrawal requests from messengers to their bank accounts
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Withdrawals')
 BEGIN
     CREATE TABLE dbo.Withdrawals (
         Id INT PRIMARY KEY IDENTITY(1,1),
         MessengerId UNIQUEIDENTIFIER NOT NULL,
-        Amount DECIMAL(10,2) NOT NULL,
+        Amount DECIMAL(12,2) NOT NULL,
         Status NVARCHAR(50) DEFAULT 'pending' CHECK (Status IN ('pending', 'approved', 'rejected', 'processed')),
         RejectionReason NVARCHAR(500),
         BankAccount NVARCHAR(255),
@@ -211,7 +282,8 @@ BEGIN
 END
 GO
 
--- Step 10: Create Disputes Table
+-- Step 11: Create Disputes Table
+-- Handles disputes between buyers and messengers regarding orders
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Disputes')
 BEGIN
     CREATE TABLE dbo.Disputes (
@@ -258,56 +330,93 @@ DELETE FROM dbo.Disputes
 DELETE FROM dbo.Payments
 DELETE FROM dbo.CallAttempts
 DELETE FROM dbo.Orders
+DELETE FROM dbo.Messengers
 DELETE FROM dbo.Users
 DBCC CHECKIDENT ('Orders', RESEED, 0)
 DBCC CHECKIDENT ('CallAttempts', RESEED, 0)
 DBCC CHECKIDENT ('Payments', RESEED, 0)
+DBCC CHECKIDENT ('CallRetries', RESEED, 0)
+DBCC CHECKIDENT ('Withdrawals', RESEED, 0)
+DBCC CHECKIDENT ('Disputes', RESEED, 0)
+DBCC CHECKIDENT ('Messages', RESEED, 0)
 GO
 
 -- Insert test users
-INSERT INTO dbo.Users (Email, PasswordHash, Name, Role, PhoneNumber, IsAvailable, Rating, CompletedOrders)
+-- Using BCrypt hash format (password: Test@1234)
+INSERT INTO dbo.Users (Email, PasswordHash, FirstName, LastName, PhoneNumber, Role, IsActive)
 VALUES 
 (
     'buyer@example.com',
-    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S', -- password: Test@1234
-    'Juan Buyer',
-    'buyer',
+    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S',
+    'Juan',
+    'Buyer',
     '+5215551234567',
-    1,
-    0,
-    0
+    'Buyer',
+    1
 ),
 (
-    'messenger@example.com',
-    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S', -- password: Test@1234
-    'María Messenger',
-    'messenger',
+    'messenger1@example.com',
+    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S',
+    'María',
+    'Messenger',
     '+5215555678901',
-    1,
-    4.8,
-    25
+    'Messenger',
+    1
+),
+(
+    'messenger2@example.com',
+    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S',
+    'Carlos',
+    'Messenger',
+    '+5215559876543',
+    'Messenger',
+    1
 ),
 (
     'admin@example.com',
-    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S', -- password: Test@1234
-    'Admin User',
-    'admin',
+    '$2a$11$8qZzJw/fHl1pGyEXLJkVqO2kUPpqVvPHxNQvqF8/YpqZ7e4Jp5K.S',
+    'Admin',
+    'User',
     '+5215559999999',
-    1,
-    0,
-    0
+    'Admin',
+    1
 )
 GO
 
--- Insert test order
+-- Create messenger profiles for messenger users
+DECLARE @Messenger1 UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'messenger1@example.com')
+DECLARE @Messenger2 UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'messenger2@example.com')
+
+INSERT INTO dbo.Messengers (UserId, IsAvailable, AverageRating, TotalCompletedOrders, TotalEarnings, PendingBalance)
+VALUES 
+(
+    @Messenger1,
+    1,
+    4.8,
+    25,
+    12475.50,
+    2500.00
+),
+(
+    @Messenger2,
+    1,
+    4.5,
+    18,
+    8925.00,
+    1800.00
+)
+GO
+
+-- Create sample orders
 DECLARE @BuyerId UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'buyer@example.com')
-DECLARE @MessengerId UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'messenger@example.com')
+DECLARE @Messenger1 UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'messenger1@example.com')
+DECLARE @Messenger2 UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'messenger2@example.com')
 
 INSERT INTO dbo.Orders (BuyerId, AcceptedMessengerId, Message, RecipientName, RecipientPhone, Category, WordCount, EstimatedDuration, TotalPrice, Status, PaymentStatus)
 VALUES 
 (
     @BuyerId,
-    @MessengerId,
+    @Messenger1,
     'Feliz cumpleaños hermana! Te deseo todo lo mejor en tu día especial. Que disfrutes muchísimo con la familia y los amigos. ¡Te queremos!',
     'María García',
     '+5215551111111',
@@ -317,33 +426,93 @@ VALUES
     499.99,
     'completed',
     'completed'
+),
+(
+    @BuyerId,
+    @Messenger2,
+    'Felicidades por tu nuevo trabajo! Sabía que lo lograrías. ¡Ahora a disfrutar de esta nueva etapa!',
+    'Juan López',
+    '+5215552222222',
+    'congratulations',
+    40,
+    1,
+    399.99,
+    'completed',
+    'completed'
+),
+(
+    @BuyerId,
+    NULL,
+    'Te quiero mucho y quería decirlo personalmente. Eres lo mejor que me ha pasado.',
+    'Ana Rodríguez',
+    '+5215553333333',
+    'love',
+    35,
+    1,
+    349.99,
+    'pending',
+    'pending'
 )
 GO
 
+-- Create sample payment
+DECLARE @OrderId INT = (SELECT TOP 1 Id FROM dbo.Orders WHERE RecipientName = 'María García')
+DECLARE @BuyerId UNIQUEIDENTIFIER = (SELECT TOP 1 Id FROM dbo.Users WHERE Email = 'buyer@example.com')
+
+INSERT INTO dbo.Payments (OrderId, BuyerId, Amount, Status, ExternalPaymentId)
+VALUES 
+(
+    @OrderId,
+    @BuyerId,
+    499.99,
+    'completed',
+    'MP-20260121-001'
+)
+GO
+
+*/
+
+-- Final summary message
 PRINT ''
 PRINT '=========================================='
 PRINT 'Database setup completed successfully!'
 PRINT '=========================================='
 PRINT ''
 PRINT 'Database: BadNews'
-PRINT 'Tables created: 9'
-PRINT 'Indexes created: Multiple for performance'
+PRINT 'Tables created: 10'
+PRINT 'Additional Hangfire database: BadNews_Hangfire'
+PRINT ''
+PRINT 'User Type Architecture:'
+PRINT '  - BUYER: Places orders for personalized messages'
+PRINT '  - MESSENGER: Records and delivers personalized messages (has Messengers profile)'
+PRINT '  - ADMIN: Manages users, reviews disputes, handles system operations'
 PRINT ''
 PRINT 'Tables:'
-PRINT '  ✓ Users'
-PRINT '  ✓ Orders'
-PRINT '  ✓ CallAttempts'
-PRINT '  ✓ Payments'
-PRINT '  ✓ Messages'
-PRINT '  ✓ CallRetries'
-PRINT '  ✓ Withdrawals'
-PRINT '  ✓ Disputes'
+PRINT '  ✓ Users (core user table for all roles)'
+PRINT '  ✓ Messengers (extended profile for messengers only)'
+PRINT '  ✓ Orders (personalized message orders)'
+PRINT '  ✓ CallAttempts (Twilio integration & recordings)'
+PRINT '  ✓ Payments (Mercado Pago transactions)'
+PRINT '  ✓ Messages (order-related chat)'
+PRINT '  ✓ CallRetries (retry scheduler: 3/day x 3 days)'
+PRINT '  ✓ Withdrawals (messenger earnings withdrawals)'
+PRINT '  ✓ Disputes (order disputes & resolutions)'
 PRINT ''
-PRINT 'Next steps:'
-PRINT '  1. Run Entity Framework migrations (if needed)'
-PRINT '  2. Configure connection string in appsettings.json'
-PRINT '  3. Start the backend application'
+PRINT 'Key Features Supported:'
+PRINT '  ✓ Role-based access control (RBAC) for 3 user types'
+PRINT '  ✓ Call recording with Twilio integration'
+PRINT '  ✓ Automatic retry system (9 max attempts over 3 days)'
+PRINT '  ✓ Payment processing with Mercado Pago'
+PRINT '  ✓ Messenger earnings tracking & withdrawals'
+PRINT '  ✓ Dispute resolution system'
+PRINT '  ✓ Timezone & preferred call time support'
+PRINT '  ✓ Email verification for security'
+PRINT ''
+PRINT 'Recommended Next Steps:'
+PRINT '  1. Execute Entity Framework migrations'
+PRINT '  2. Configure SQL Server connection string in appsettings.json'
+PRINT '  3. Uncomment and run sample data insertion (at bottom of this script)'
+PRINT '  4. Start the backend application'
+PRINT '  5. Verify API endpoints with Swagger/Postman'
 PRINT '=========================================='
-*/
-
 GO

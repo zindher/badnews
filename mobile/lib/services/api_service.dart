@@ -15,6 +15,27 @@ class ApiService {
     );
   }
 
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    try {
+      // TODO: Replace with actual backend endpoint
+      // final response = await _dio.post('/auth/login', data: {
+      //   'email': email,
+      //   'password': password,
+      // });
+      // return response.data;
+      
+      // For now, return mock response
+      return {
+        'token': 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        'userId': 'user_${DateTime.now().millisecondsSinceEpoch}',
+        'name': email.split('@')[0],
+        'email': email,
+      };
+    } on DioException catch (e) {
+      throw Exception('Error en login: ${e.message}');
+    }
+  }
+
   Future<List<OrderModel>> getAvailableOrders() async {
     try {
       final response = await _dio.get('/orders/available');

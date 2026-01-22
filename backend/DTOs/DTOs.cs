@@ -9,6 +9,7 @@ public class RegisterRequest
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string Role { get; set; } = "Buyer"; // Buyer or Messenger
+    public DateTime? TermsAcceptedAt { get; set; } // T&C acceptance timestamp
 }
 
 public class LoginRequest

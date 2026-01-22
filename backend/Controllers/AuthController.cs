@@ -124,6 +124,102 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { success = false, message = "Internal server error" });
         }
     }
+
+    [HttpPost("google-login")]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, [FromServices] IGoogleOAuthService googleOAuthService, [FromServices] IJwtService jwtService)
+    {
+        if (!ModelState.IsValid || string.IsNullOrEmpty(request.GoogleToken))
+            return BadRequest(new { success = false, message = "Google token is required" });
+
+        try
+        {
+            // Authenticate with Google
+            var (success, user, error) = await googleOAuthService.AuthenticateWithGoogleTokenAsync(request.GoogleToken, request.Role);
+
+            if (!success || user == null)
+                return Unauthorized(new { success = false, message = error ?? "Google authentication failed" });
+
+            // Generate JWT token
+            var token = jwtService.GenerateToken(user);
+
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    token,
+                    user = new
+                    {
+                        id = user.Id,
+                        email = user.Email,
+                        firstName = user.FirstName,
+                        lastName = user.LastName,
+                        role = user.Role.ToString(),
+                        profilePicture = user.GoogleProfilePictureUrl
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error with Google login");
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
+
+    [HttpPost("link-google")]
+    [Authorize]
+    public async Task<IActionResult> LinkGoogle([FromBody] GoogleLoginRequest request, [FromServices] IGoogleOAuthService googleOAuthService)
+    {
+        try
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                return Unauthorized();
+
+            var (success, user, error) = await googleOAuthService.LinkGoogleAccountAsync(parsedUserId, request.GoogleToken);
+
+            if (!success)
+                return BadRequest(new { success = false, message = error });
+
+            return Ok(new { success = true, message = "Google account linked successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error linking Google account");
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
+
+    [HttpPost("unlink-google")]
+    [Authorize]
+    public async Task<IActionResult> UnlinkGoogle([FromServices] IGoogleOAuthService googleOAuthService)
+    {
+        try
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                return Unauthorized();
+
+            var success = await googleOAuthService.UnlinkGoogleAccountAsync(parsedUserId);
+
+            if (!success)
+                return BadRequest(new { success = false, message = "Cannot unlink Google account" });
+
+            return Ok(new { success = true, message = "Google account unlinked successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unlinking Google account");
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
+}
+
+public class GoogleLoginRequest
+{
+    public string GoogleToken { get; set; } = null!;
+    public BadNews.Models.UserRole? Role { get; set; }
 }
 
 public class UpdateProfileRequest

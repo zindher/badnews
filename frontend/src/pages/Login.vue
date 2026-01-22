@@ -1,7 +1,10 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <h1>Gritalo 📢</h1>
+      <div class="logo-section">
+        <Logo variant="icon" :isCompact="true" />
+        <span class="brand-text">Gritalo</span>
+      </div>
       
       <!-- TAB SELECTOR -->
       <div class="tab-selector">
@@ -26,12 +29,17 @@
         <h2>Bienvenido de vuelta</h2>
         <p class="subtitle">Inicia sesión en tu cuenta</p>
         
+        <div v-if="userStore.isLoading" class="flex justify-center mb-4">
+          <Loader message="Iniciando sesión..." />
+        </div>
+        
         <div class="form-group">
           <label>Email</label>
           <input 
             v-model="loginForm.email" 
             type="email" 
             placeholder="tu@email.com"
+            :disabled="userStore.isLoading"
             required
           />
         </div>
@@ -42,6 +50,7 @@
             v-model="loginForm.password" 
             type="password" 
             placeholder="••••••••"
+            :disabled="userStore.isLoading"
             required
           />
         </div>
@@ -49,12 +58,13 @@
         <button 
           type="submit" 
           class="btn btn-primary"
-          :disabled="loading"
+          :disabled="userStore.isLoading"
         >
-          {{ loading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+          {{ userStore.isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
         </button>
 
-        <p v-if="error" class="error-message">{{ error }}</p>
+        <!-- Google Sign-In -->
+        <GoogleSignInButton :showDivider="true" />
       </form>
 
       <!-- REGISTER FORM -->
@@ -62,14 +72,32 @@
         <h2>Únete a Gritalo</h2>
         <p class="subtitle">Crea tu cuenta en segundos</p>
 
-        <div class="form-group">
-          <label>Nombre Completo</label>
-          <input 
-            v-model="registerForm.name" 
-            type="text" 
-            placeholder="Juan Pérez"
-            required
-          />
+        <div v-if="userStore.isLoading" class="flex justify-center mb-4">
+          <Loader message="Registrando..." />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input 
+              v-model="registerForm.firstName" 
+              type="text" 
+              placeholder="Juan"
+              :disabled="userStore.isLoading"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Apellido</label>
+            <input 
+              v-model="registerForm.lastName" 
+              type="text" 
+              placeholder="Pérez"
+              :disabled="userStore.isLoading"
+              required
+            />
+          </div>
         </div>
 
         <div class="form-group">
@@ -78,6 +106,7 @@
             v-model="registerForm.email" 
             type="email" 
             placeholder="tu@email.com"
+            :disabled="userStore.isLoading"
             required
           />
         </div>
@@ -88,30 +117,40 @@
             v-model="registerForm.password" 
             type="password" 
             placeholder="••••••••"
+            :disabled="userStore.isLoading"
             required
           />
         </div>
 
         <div class="form-group">
-          <label>¿Eres...?</label>
-          <select v-model="registerForm.userType" required>
-            <option value="">Selecciona un rol</option>
-            <option value="buyer">Comprador (Quiero enviar encargos)</option>
-            <option value="messenger">Mensajero (Quiero ganar dinero)</option>
-          </select>
+          <label>Confirmar Contraseña</label>
+          <input 
+            v-model="registerForm.confirmPassword" 
+            type="password" 
+            placeholder="••••••••"
+            :disabled="userStore.isLoading"
+            required
+          />
         </div>
 
         <button 
           type="submit" 
           class="btn btn-primary"
-          :disabled="loading"
+          :disabled="userStore.isLoading"
         >
-          {{ loading ? 'Registrando...' : 'Registrarse' }}
+          {{ userStore.isLoading ? 'Registrando...' : 'Registrarse' }}
         </button>
-
-        <p v-if="error" class="error-message">{{ error }}</p>
       </form>
     </div>
+
+    <!-- Terms and Conditions Modal -->
+    <TermsAndConditionsModal 
+      :isOpen="showTermsModal"
+      :isRequired="true"
+      @accept="handleTermsAccepted"
+      @reject="handleTermsRejected"
+      @close="showTermsModal = false"
+    />
   </div>
 </template>
 
@@ -119,13 +158,21 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/userStore'
+import { useUIStore } from '../stores/uiStore'
+import Logo from '../components/Logo.vue'
+import Loader from '../components/Loader.vue'
+import ErrorMessage from '../components/ErrorMessage.vue'
+import GoogleSignInButton from '../components/GoogleSignInButton.vue'
+import TermsAndConditionsModal from '../components/TermsAndConditionsModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const uiStore = useUIStore()
 
 const isLogin = ref(true)
-const loading = ref(false)
-const error = ref('')
+const showErrorMessage = ref(false)
+const showTermsModal = ref(false)
+const termsAccepted = ref(false)
 
 const loginForm = ref({
   email: 'buyer@test.com',
@@ -133,199 +180,124 @@ const loginForm = ref({
 })
 
 const registerForm = ref({
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   password: '',
-  userType: 'buyer'
+  confirmPassword: '',
+  role: 'Buyer' // Frontend es solo para Compradores
 })
 
+// Form validation
+const validateLoginForm = () => {
+  if (!loginForm.value.email || !loginForm.value.password) {
+    uiStore.addError('Por favor completa todos los campos')
+    return false
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginForm.value.email)) {
+    uiStore.addError('Email inválido')
+    return false
+  }
+  return true
+}
+
+const validateRegisterForm = () => {
+  if (!registerForm.value.firstName || !registerForm.value.lastName || 
+      !registerForm.value.email || !registerForm.value.password || 
+      !registerForm.value.confirmPassword) {
+    uiStore.addError('Por favor completa todos los campos')
+    return false
+  }
+  if (registerForm.value.password !== registerForm.value.confirmPassword) {
+    uiStore.addError('Las contraseñas no coinciden')
+    return false
+  }
+  if (registerForm.value.password.length < 6) {
+    uiStore.addError('La contraseña debe tener al menos 6 caracteres')
+    return false
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registerForm.value.email)) {
+    uiStore.addError('Email inválido')
+    return false
+  }
+  return true
+}
+
 const handleLogin = async () => {
-  error.value = ''
-  loading.value = true
+  if (!validateLoginForm()) return
 
   try {
-    const success = await userStore.login(loginForm.value.email, loginForm.value.password)
+    const success = await userStore.login(
+      loginForm.value.email, 
+      loginForm.value.password
+    )
     
     if (success) {
-      router.push(userStore.user?.role === 'messenger' ? '/messenger/home' : '/orders')
+      uiStore.addSuccess('¡Bienvenido de vuelta!')
+      setTimeout(() => {
+        const redirectPath = userStore.isMessenger ? '/messenger/home' : '/orders'
+        router.push(redirectPath)
+      }, 1000)
     } else {
-      error.value = 'Email o contraseña incorrectos'
+      uiStore.addError(userStore.error || 'Email o contraseña incorrectos')
     }
   } catch (err) {
-    error.value = 'Error al iniciar sesión. Intenta más tarde.'
-    console.error(err)
-  } finally {
-    loading.value = false
+    uiStore.addError(err.message || 'Error al iniciar sesión')
+    console.error('Login error:', err)
   }
 }
 
 const handleRegister = async () => {
-  error.value = ''
-  loading.value = true
+  if (!validateRegisterForm()) return
+
+  // Mostrar modal de T&C
+  if (!termsAccepted.value) {
+    showTermsModal.value = true
+    return
+  }
 
   try {
-    const success = await userStore.register(
-      registerForm.value.email,
-      registerForm.value.password,
-      registerForm.value.name,
-      registerForm.value.userType
-    )
+    const userData = {
+      firstName: registerForm.value.firstName,
+      lastName: registerForm.value.lastName,
+      email: registerForm.value.email,
+      password: registerForm.value.password,
+      role: registerForm.value.role,
+      termsAcceptedAt: new Date().toISOString()
+    }
 
+    const success = await userStore.register(userData)
+    
     if (success) {
-      router.push(userStore.user?.role === 'messenger' ? '/messenger/home' : '/orders')
+      uiStore.addSuccess('¡Cuenta creada exitosamente!')
+      setTimeout(() => {
+        const redirectPath = userStore.isMessenger ? '/messenger/home' : '/orders'
+        router.push(redirectPath)
+      }, 1000)
     } else {
-      error.value = 'Error al registrarse. Intenta nuevamente.'
+      uiStore.addError(userStore.error || 'Error al registrarse')
     }
   } catch (err) {
-    error.value = 'Error al registrarse. Intenta más tarde.'
-    console.error(err)
-  } finally {
-    loading.value = false
+    uiStore.addError(err.message || 'Error al registrarse')
+    console.error('Register error:', err)
   }
+}
+
+const handleTermsAccepted = (data) => {
+  termsAccepted.value = true
+  showTermsModal.value = false
+  // Continuar con el registro
+  handleRegister()
+}
+
+const handleTermsRejected = () => {
+  termsAccepted.value = false
+  showTermsModal.value = false
+  uiStore.addError('Debes aceptar los Términos y Condiciones para registrarte')
 }
 </script>
 
-<style scoped>
-.auth-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 1rem;
-}
-
-.auth-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 400px;
-}
-
-h1 {
-  text-align: center;
-  color: #667eea;
-  margin-bottom: 2rem;
-  font-size: 2rem;
-}
-
-.tab-selector {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  background: #f5f5f5;
-  padding: 0.5rem;
-  border-radius: 8px;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 0.75rem;
-  border: none;
-  background: transparent;
-  color: #666;
-  font-weight: 600;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.3s;
-}
-
-.tab-btn.active {
-  background: white;
-  color: #667eea;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
-}
-
-.form h2 {
-  color: #333;
-  margin-bottom: 0.5rem;
-  font-size: 1.5rem;
-}
-
-.subtitle {
-  color: #999;
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-input,
-select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-  font-family: inherit;
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.btn {
-  width: 100%;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-size: 1rem;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  margin-top: 1rem;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.error-message {
-  color: #e74c3c;
-  margin-top: 1rem;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 480px) {
-  .auth-card {
-    padding: 1.5rem;
-  }
-
-  h1 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .form h2 {
-    font-size: 1.3rem;
-  }
-}
+<style>
+/* Component-specific styles can go here if needed */
 </style>
+

@@ -69,6 +69,29 @@ mobile/
   └── pubspec.yaml
 ```
 
+## ⚠️ POLÍTICA DE DOCUMENTACIÓN (CRÍTICO)
+
+### NO CREAR MÁS ARCHIVOS MD/README
+- ❌ **NO crear** archivos README.md adicionales
+- ❌ **NO crear** archivos de documentación nuevos (.md)
+- ❌ **NO crear** archivos de resumen o status
+- ❌ **NO duplicar** información existente
+
+### Archivos MD Permitidos (SOLO estos)
+- ✅ **MASTER.md** - Documentación maestra única (única fuente de verdad)
+- ✅ **DOCUMENTATION_GUIDE.md** - Índice de lectura y navegación
+- ✅ **database/COMPLETE_DATABASE.sql** - SQL consolidado
+- ✅ **Archivos en docs/** - Solo mantenimiento heredado
+
+### Si necesitas documentar algo:
+1. Actualiza **MASTER.md** (agregar nueva sección)
+2. Si es SQL → actualiza **database/COMPLETE_DATABASE.sql**
+3. Si es búsqueda → actualiza **DOCUMENTATION_GUIDE.md**
+4. **NUNCA** crees un archivo MD nuevo
+
+### Consecuencia
+Si se crea un archivo MD no autorizado, debe ser eliminado inmediatamente.
+
 ## Notas Importantes
 - La grabación de llamadas es requisito crítico
 - Sistema de reintentos: 3 llamadas/día por 3 días

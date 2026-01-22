@@ -222,36 +222,14 @@ const confirmAcceptance = () => {
 </script>
 
 <style scoped>
-.terms {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
+/* Specific Terms page styles only */
 .terms-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
-  padding: 2rem 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  text-align: center;
 }
 
 .terms-header h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.8rem;
-}
-
-.terms-header p {
-  margin: 0;
-  opacity: 0.9;
-}
-
-.terms-content {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: white;
 }
 
 section {
@@ -265,27 +243,10 @@ section:last-of-type {
 }
 
 h2 {
-  color: #667eea;
+  color: var(--primary-color);
   font-size: 1.3rem;
   margin-bottom: 1rem;
   margin-top: 0;
-}
-
-p {
-  color: #333;
-  line-height: 1.6;
-  margin-bottom: 0.75rem;
-}
-
-ul {
-  margin: 1rem 0;
-  padding-left: 1.5rem;
-}
-
-li {
-  color: #333;
-  line-height: 1.6;
-  margin-bottom: 0.5rem;
 }
 
 .important {
@@ -300,7 +261,7 @@ li {
 }
 
 .acceptance-box {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
   padding: 2rem 1.5rem;
   border-radius: 8px;
@@ -343,12 +304,6 @@ li {
   accent-color: white;
 }
 
-.checkbox label {
-  margin: 0;
-  font-weight: normal;
-  cursor: pointer;
-}
-
 .button-group {
   display: flex;
   flex-direction: column;
@@ -356,24 +311,9 @@ li {
   margin-top: 1.5rem;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  font-size: 1rem;
-}
-
 .btn-primary {
   background: white;
-  color: #667eea;
+  color: var(--primary-color);
 }
 
 .btn-primary:disabled {
@@ -397,28 +337,8 @@ li {
 
 /* TABLET */
 @media (min-width: 640px) {
-  .terms {
-    padding: 2rem;
-  }
-
-  .terms-header {
-    padding: 3rem 2rem;
-  }
-
-  .terms-header h1 {
-    font-size: 2rem;
-  }
-
-  .terms-content {
-    padding: 2rem;
-  }
-
   .button-group {
     flex-direction: row;
-  }
-
-  .btn {
-    flex: 1;
   }
 }
 

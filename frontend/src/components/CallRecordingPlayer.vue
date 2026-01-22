@@ -99,11 +99,9 @@ const shareVideo = () => {
 </script>
 
 <style scoped>
+/* Specific CallRecordingPlayer component styles only */
 .recording-player {
-  background: white;
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .player-wrapper {
@@ -156,25 +154,14 @@ const shareVideo = () => {
   background: white;
 }
 
-.btn {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-}
-
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(91, 75, 159, 0.4);
 }
 
 .btn-secondary {
@@ -202,10 +189,6 @@ const shareVideo = () => {
 
   .player-actions {
     flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
   }
 }
 </style>

@@ -81,15 +81,8 @@ const confirm = () => {
 </script>
 
 <style scoped>
+/* Specific MessagePreviewModal component styles only */
 .message-preview {
-  fixed: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
   padding: 1rem;
 }
 
@@ -125,10 +118,7 @@ const confirm = () => {
 }
 
 .preview-card {
-  background: white;
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -136,7 +126,7 @@ const confirm = () => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
 }
 
@@ -159,15 +149,11 @@ const confirm = () => {
   font-weight: bold;
 }
 
-.card-body {
-  padding: 1.5rem;
-}
-
 .message-content {
-  background: #f9fafb;
+  background: #f9fafc;
   padding: 1rem;
   border-radius: 6px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--primary-color);
   margin-bottom: 1.5rem;
   line-height: 1.6;
   color: #333;
@@ -200,10 +186,6 @@ const confirm = () => {
   grid-column: 1 / -1;
 }
 
-.icon {
-  font-size: 1.1rem;
-}
-
 .preview-footer {
   display: flex;
   gap: 1rem;
@@ -212,25 +194,14 @@ const confirm = () => {
   max-width: 600px;
 }
 
-.btn {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
-}
-
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(91, 75, 159, 0.4);
 }
 
 .btn-secondary {

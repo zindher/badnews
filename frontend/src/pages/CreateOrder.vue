@@ -1,8 +1,21 @@
 <template>
   <div class="create-order">
-    <h2>Crear Nuevo Encargo</h2>
-    
-    <form @submit.prevent="submitForm" class="order-form">
+    <!-- Verificación de autenticación -->
+    <div v-if="!userStore.isAuthenticated" class="auth-required">
+      <div class="alert alert-warning">
+        <h3>📋 Debes iniciar sesión para crear un encargo</h3>
+        <p>Por favor inicia sesión o crea una cuenta para continuar.</p>
+        <router-link to="/login" class="btn btn-primary">
+          Ir a Iniciar Sesión
+        </router-link>
+      </div>
+    </div>
+
+    <!-- Formulario de creación de encargo -->
+    <template v-else>
+      <h2>Crear Nuevo Encargo</h2>
+      
+      <form @submit.prevent="submitForm" class="order-form">
       <div class="form-group">
         <label for="recipientName">Nombre del Receptor:</label>
         <input 
@@ -128,13 +141,14 @@
     </form>
 
     <div v-if="error" class="error-message">{{ error }}</div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { OrderService } from '../services/orderService'
+import { useUserStore } from '../stores/userStore'
 import { 
   getTimezoneByState, 
   getTimezoneInfo, 
@@ -144,6 +158,7 @@ import {
 } from '../services/timezones'
 
 const router = useRouter()
+const userStore = useUserStore()
 const loading = ref(false)
 const error = ref(null)
 const recipientTimezone = ref(null)
@@ -277,76 +292,17 @@ const submitForm = async () => {
 </script>
 
 <style scoped>
+/* Specific CreateOrder styles only */
 .create-order {
-  width: 100%;
   max-width: 600px;
   margin: 0 auto;
 }
 
-h2 {
-  margin-bottom: 1.5rem;
-  font-size: 1.5rem;
-}
-
-.order-form {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #333;
-  font-size: 0.95rem;
-}
-
-input[type="text"],
-input[type="tel"],
-input[type="time"],
-input[type="number"],
-select,
-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-family: inherit;
-  transition: border-color 0.3s, box-shadow 0.3s;
-  box-sizing: border-box;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23667eea' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  padding-right: 2.5rem;
-  cursor: pointer;
-}
-
-input[type="text"]:focus,
-input[type="tel"]:focus,
-input[type="time"]:focus,
-input[type="number"]:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-textarea {
-  resize: vertical;
-  min-height: 120px;
+.auth-required {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
 }
 
 .price-input {
@@ -356,6 +312,8 @@ textarea {
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .price-input span {
@@ -373,13 +331,13 @@ textarea {
 .price-input input:focus {
   box-shadow: none;
   border-color: transparent;
+  outline: none;
 }
 
 .checkbox label {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0;
   cursor: pointer;
 }
 
@@ -387,14 +345,7 @@ textarea {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #667eea;
-}
-
-.help-text {
-  margin: 0.5rem 0 0 0;
-  color: #666;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  accent-color: var(--primary-color);
 }
 
 .message-counter {
@@ -409,7 +360,7 @@ textarea {
 }
 
 .word-count {
-  color: #667eea;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -422,73 +373,11 @@ textarea {
   color: #ff6b6b;
 }
 
-.error-inline {
-  color: #ff6b6b;
-  font-weight: 600;
-  margin: 0;
-}
-
-.form-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 2rem;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  touch-action: manipulation;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ddd;
-}
-
-.btn-secondary:active {
-  transform: scale(0.98);
-}
-
-.error-message {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-top: 1rem;
-  border-left: 4px solid #d32f2f;
-}
-
 .timezone-info {
   margin-top: 0.75rem;
   padding: 0.75rem;
   background: #f5f9ff;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary-color);
   border-radius: 4px;
 }
 
@@ -498,73 +387,28 @@ textarea {
   color: #333;
 }
 
-.timezone-hint {
-  color: #666;
-  font-size: 0.85rem;
-  font-style: italic;
-}
-
-.time-input-wrapper {
-  width: 100%;
-}
-
 .time-info {
   margin-top: 0.75rem;
   padding: 0.75rem;
   background: #f5f9ff;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary-color);
   border-radius: 4px;
 }
 
-.time-label {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-  color: #333;
-}
-
-.error-inline {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 0.5rem;
-  border-radius: 3px;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
 }
 
 @media (min-width: 640px) {
-  h2 {
-    font-size: 1.8rem;
-  }
-
-  .order-form {
-    padding: 2rem;
-  }
-
   .form-actions {
     flex-direction: row;
   }
 
-  .btn {
+  .form-actions .btn {
     flex: 1;
-  }
-}
-
-@media (min-width: 1024px) {
-  h2 {
-    font-size: 2rem;
-  }
-
-  .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  }
-
-  .btn-secondary:hover {
-    background: #e0e0e0;
-  }
-
-  .btn:active {
-    transform: scale(1);
   }
 }
 </style>

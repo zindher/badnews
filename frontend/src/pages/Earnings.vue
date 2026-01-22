@@ -163,22 +163,9 @@ const initiateWithdraw = async () => {
 </script>
 
 <style scoped>
+/* Specific Earnings page styles only */
 .earnings-page {
-  min-height: 100vh;
   background: #f9fafb;
-  padding: 2rem 0;
-}
-
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-h1 {
-  margin: 0 0 2rem 0;
-  font-size: 2.5rem;
-  color: #333;
 }
 
 .stats-grid {
@@ -189,81 +176,12 @@ h1 {
 }
 
 .stat-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #667eea;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  color: #333;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.stat-sub {
-  color: #999;
-  font-size: 0.9rem;
-}
-
-.section {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.section h2 {
-  margin: 0;
-  color: #333;
-}
-
-.filter-select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.empty {
-  text-align: center;
-  padding: 2rem;
-  color: #999;
-}
-
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
+  border-left: 4px solid var(--primary-color);
 }
 
 .transactions-table th {
   background: #f9fafb;
-  padding: 1rem;
-  text-align: left;
   border-bottom: 2px solid #e2e8f0;
-  font-weight: 600;
-  color: #666;
-}
-
-.transactions-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  color: #333;
 }
 
 .transactions-table th.amount,
@@ -274,7 +192,7 @@ h1 {
 }
 
 .order-link a {
-  color: #667eea;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -286,7 +204,7 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
   padding: 2rem;
   border-radius: 8px;
@@ -303,55 +221,22 @@ h1 {
   margin-top: 0.5rem;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .btn-primary {
   background: white;
-  color: #667eea;
+  color: var(--primary-color);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
 }
 
-.withdrawals-list {
-  margin-top: 2rem;
-}
-
-.withdrawals-list h3 {
-  margin: 0 0 1rem 0;
-  color: #333;
-}
-
 .withdrawal-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
   background: #f9fafb;
-  border-radius: 4px;
   margin-bottom: 0.5rem;
 }
 
 .withdrawal-date {
   color: #666;
-}
-
-.withdrawal-amount {
-  font-weight: 600;
-  color: #333;
 }
 
 .withdrawal-status {
@@ -377,12 +262,6 @@ h1 {
 }
 
 @media (max-width: 768px) {
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
   .withdraw-card {
     flex-direction: column;
     text-align: center;

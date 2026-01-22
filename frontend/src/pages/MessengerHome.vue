@@ -113,16 +113,9 @@ const checkAgain = () => {
 </script>
 
 <style scoped>
+/* Specific MessengerHome page styles only */
 .messenger-home {
-  min-height: 100vh;
   background: #f9fafb;
-  padding: 2rem 0;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
 }
 
 .header {
@@ -132,12 +125,6 @@ const checkAgain = () => {
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 2rem;
-  color: #333;
 }
 
 .filters {
@@ -157,34 +144,13 @@ const checkAgain = () => {
 }
 
 .filter-btn:hover {
-  border-color: #667eea;
+  border-color: var(--primary-color);
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
   border-color: transparent;
-}
-
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-  font-size: 1.1rem;
-}
-
-.empty {
-  text-align: center;
-  padding: 3rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.empty p {
-  margin: 0 0 1rem 0;
-  color: #666;
-  font-size: 1.1rem;
 }
 
 .orders-grid {

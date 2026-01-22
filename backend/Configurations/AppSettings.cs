@@ -4,69 +4,69 @@ namespace BadNews.Configurations;
 
 public class AppSettings
 {
-    [JsonPropertyName("database")]
+    [JsonPropertyName("Database")]
     public DatabaseSettings Database { get; set; } = new();
 
-    [JsonPropertyName("twilio")]
+    [JsonPropertyName("Twilio")]
     public TwilioSettings Twilio { get; set; } = new();
 
-    [JsonPropertyName("mercadoPago")]
+    [JsonPropertyName("MercadoPago")]
     public MercadoPagoSettings MercadoPago { get; set; } = new();
 
-    [JsonPropertyName("sendGrid")]
+    [JsonPropertyName("SendGrid")]
     public SendGridSettings SendGrid { get; set; } = new();
 
-    [JsonPropertyName("jwt")]
+    [JsonPropertyName("Jwt")]
     public JwtSettings Jwt { get; set; } = new();
 }
 
 public class DatabaseSettings
 {
-    [JsonPropertyName("connectionString")]
+    [JsonPropertyName("ConnectionString")]
     public string ConnectionString { get; set; } = "";
 }
 
 public class TwilioSettings
 {
-    [JsonPropertyName("accountSid")]
+    [JsonPropertyName("AccountSid")]
     public string AccountSid { get; set; } = "";
 
-    [JsonPropertyName("authToken")]
+    [JsonPropertyName("AuthToken")]
     public string AuthToken { get; set; } = "";
 
-    [JsonPropertyName("phoneNumber")]
+    [JsonPropertyName("PhoneNumber")]
     public string PhoneNumber { get; set; } = "";
 }
 
 public class MercadoPagoSettings
 {
-    [JsonPropertyName("accessToken")]
+    [JsonPropertyName("AccessToken")]
     public string AccessToken { get; set; } = "";
 
-    [JsonPropertyName("publicKey")]
+    [JsonPropertyName("PublicKey")]
     public string PublicKey { get; set; } = "";
 }
 
 public class SendGridSettings
 {
-    [JsonPropertyName("apiKey")]
+    [JsonPropertyName("ApiKey")]
     public string ApiKey { get; set; } = "";
 
-    [JsonPropertyName("fromEmail")]
+    [JsonPropertyName("FromEmail")]
     public string FromEmail { get; set; } = "";
 }
 
 public class JwtSettings
 {
-    [JsonPropertyName("secret")]
+    [JsonPropertyName("Secret")]
     public string Secret { get; set; } = "";
 
-    [JsonPropertyName("expirationMinutes")]
+    [JsonPropertyName("ExpirationMinutes")]
     public int ExpirationMinutes { get; set; } = 60;
 
-    [JsonPropertyName("issuer")]
+    [JsonPropertyName("Issuer")]
     public string Issuer { get; set; } = "";
 
-    [JsonPropertyName("audience")]
+    [JsonPropertyName("Audience")]
     public string Audience { get; set; } = "";
 }

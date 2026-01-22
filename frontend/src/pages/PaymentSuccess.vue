@@ -65,26 +65,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Specific PaymentSuccess page styles only */
 .payment-success {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.container {
-  width: 100%;
-  max-width: 600px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
 }
 
 .success-card {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem;
   text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
 .success-icon {
@@ -97,18 +84,6 @@ onMounted(() => {
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
-}
-
-h1 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 2rem;
-}
-
-.message {
-  color: #666;
-  margin: 0 0 2rem 0;
-  font-size: 1.1rem;
 }
 
 .order-info {
@@ -171,20 +146,8 @@ h1 {
   margin-top: 2rem;
 }
 
-.btn {
-  flex: 1;
-  padding: 1rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  text-decoration: none;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
 }
 
@@ -195,8 +158,8 @@ h1 {
 
 .btn-secondary {
   background: white;
-  border: 2px solid #667eea;
-  color: #667eea;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
 }
 
 .btn-secondary:hover {
@@ -204,10 +167,6 @@ h1 {
 }
 
 @media (max-width: 640px) {
-  .success-card {
-    padding: 2rem 1.5rem;
-  }
-
   .actions {
     flex-direction: column;
   }

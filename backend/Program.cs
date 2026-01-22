@@ -31,8 +31,17 @@ builder.Services.AddCors(options =>
 });
 
 // Database
-builder.Services.AddDbContext<BadNewsDbContext>(options =>
-    options.UseSqlServer(settings.Database.ConnectionString));
+Console.WriteLine($"ConnectionString: {settings.Database.ConnectionString}");
+try
+{
+    builder.Services.AddDbContext<BadNewsDbContext>(options =>
+        options.UseSqlServer(settings.Database.ConnectionString));
+    Console.WriteLine("DbContext registered successfully");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"DbContext error: {ex.Message}");
+}
 
 // Configuration
 builder.Services.Configure<AppSettings>(builder.Configuration);
@@ -65,36 +74,59 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ITwilioService, TwilioServiceImpl>();
-builder.Services.AddScoped<IMercadoPagoService, MercadoPagoServiceImpl>();
-builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpClient<IMercadoPagoService, MercadoPagoServiceImpl>();
+builder.Services.AddHttpClient<IGoogleOAuthService, GoogleOAuthService>();
+
+// Email Service Factory
+builder.Services.AddScoped<IEmailService>(provider =>
+{
+    var config = provider.GetRequiredService<IConfiguration>();
+    var apiKey = config["SendGrid:ApiKey"] ?? "test-key";
+    var fromEmail = config["SendGrid:FromEmail"] ?? "noreply@badnews.com";
+    var fromName = config["SendGrid:FromName"] ?? "BadNews";
+    return new EmailService(apiKey, fromEmail, fromName);
+});
+
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<ITimezoneService, TimezoneService>();
-
-// Database
-builder.Services.AddDbContext<BadNewsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("BadNews") ?? 
-        "Server=(localdb)\\mssqllocaldb;Database=BadNews;Trusted_Connection=true;"));
 
 // Logging
 builder.Services.AddLogging();
 
 var app = builder.Build();
 
+Console.WriteLine("Application built successfully");
+
 // Middleware
-app.UseErrorHandling();
+// app.UseErrorHandling();  // Temporarily disabled
+Console.WriteLine("ErrorHandling middleware disabled");
 
 // Enable Swagger for all environments
 app.UseSwagger();
+Console.WriteLine("Swagger enabled");
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "BadNews API V1");
-    c.RoutePrefix = string.Empty; // Make Swagger UI the root
+    c.RoutePrefix = "swagger"; // Swagger available at /swagger
 });
+Console.WriteLine("SwaggerUI configured");
 
-app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
+Console.WriteLine("CORS configured");
 app.UseAuthentication();
+Console.WriteLine("Authentication configured");
 app.UseAuthorization();
+Console.WriteLine("Authorization configured");
 app.MapControllers();
+Console.WriteLine("Controllers mapped");
 
-app.Run();
+Console.WriteLine("Starting application...");
+try
+{
+    await app.RunAsync();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Application error: {ex}");
+}
+Console.WriteLine("Application stopped");

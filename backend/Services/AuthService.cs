@@ -40,6 +40,10 @@ public class AuthService : IAuthService
         if (existingUser != null)
             throw new InvalidOperationException("User already exists with this email");
 
+        // Validate T&C acceptance
+        if (!request.TermsAcceptedAt.HasValue)
+            throw new InvalidOperationException("You must accept the Terms and Conditions to register");
+
         var user = new Models.User
         {
             Email = request.Email,
@@ -48,7 +52,9 @@ public class AuthService : IAuthService
             LastName = request.LastName,
             PasswordHash = HashPassword(request.Password),
             Role = request.Role == "Messenger" ? Models.UserRole.Messenger : Models.UserRole.Buyer,
-            IsActive = true
+            IsActive = true,
+            TermsAcceptedAt = request.TermsAcceptedAt,
+            TermsAcceptedVersion = "1.0"
         };
 
         _dbContext.Users.Add(user);
@@ -62,7 +68,7 @@ public class AuthService : IAuthService
             await _dbContext.SaveChangesAsync();
         }
 
-        _logger.LogInformation($"User registered: {user.Email}");
+        _logger.LogInformation($"User registered: {user.Email} - Terms accepted at {request.TermsAcceptedAt}");
 
         return new AuthResponse
         {

@@ -3,6 +3,7 @@ import { useUserStore } from './stores/userStore'
 
 // Auth Pages
 import Login from './pages/Login.vue'
+import TermsAndConditions from './pages/TermsAndConditions.vue'
 
 // Buyer Pages
 import Home from './pages/Home.vue'
@@ -24,11 +25,12 @@ import Analytics from './pages/Analytics.vue'
 
 const routes = [
   { path: '/login', component: Login },
+  { path: '/terms-conditions', component: TermsAndConditions },
   { path: '/', component: Home },
-  { path: '/orders', component: Orders },
-  { path: '/orders/new', component: CreateOrder },
-  { path: '/orders/:id', component: Orders },
-  { path: '/profile', component: Profile },
+  { path: '/orders', component: Orders, meta: { requiresAuth: true } },
+  { path: '/orders/new', component: CreateOrder, meta: { requiresAuth: true } },
+  { path: '/orders/:id', component: Orders, meta: { requiresAuth: true } },
+  { path: '/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/terms', component: Terms },
   
   // Messenger routes
@@ -54,11 +56,17 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   
+  // Si la ruta requiere autenticación y no está autenticado
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
+    // Redirige a login con la ruta destino como redirect
+    next({ path: '/login', query: { redirect: to.fullPath } })
+  } 
+  // Si la ruta requiere admin y el usuario no es admin
+  else if (to.meta.requiresAdmin && userStore.user?.role !== 'Admin') {
     next('/')
-  } else if (to.meta.requiresAdmin && userStore.user?.role !== 'admin') {
-    next('/')
-  } else {
+  } 
+  // Si todo está bien, continúa
+  else {
     next()
   }
 })

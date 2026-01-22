@@ -59,44 +59,19 @@ const retryPayment = () => {
 </script>
 
 <style scoped>
+/* Specific PaymentFailed page styles only */
 .payment-failed {
-  min-height: 100vh;
   background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.container {
-  width: 100%;
-  max-width: 600px;
 }
 
 .error-card {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem;
   text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
 }
 
 .error-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
   display: inline-block;
-}
-
-h1 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 2rem;
-}
-
-.message {
-  color: #666;
-  margin: 0 0 2rem 0;
-  font-size: 1.1rem;
 }
 
 .error-details {
@@ -145,19 +120,6 @@ h1 {
   margin: 2rem 0;
 }
 
-.btn {
-  flex: 1;
-  padding: 1rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  text-decoration: none;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1rem;
-}
-
 .btn-primary {
   background: #dc2626;
   color: white;
@@ -187,7 +149,7 @@ h1 {
 }
 
 .support a {
-  color: #667eea;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 600;
 }
@@ -197,10 +159,6 @@ h1 {
 }
 
 @media (max-width: 640px) {
-  .error-card {
-    padding: 2rem 1.5rem;
-  }
-
   .actions {
     flex-direction: column;
   }

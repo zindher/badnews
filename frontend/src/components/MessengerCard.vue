@@ -109,12 +109,8 @@ const decline = () => {
 </script>
 
 <style scoped>
+/* Specific MessengerCard component styles only */
 .messenger-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -128,7 +124,7 @@ const decline = () => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
 }
 
@@ -150,10 +146,6 @@ const decline = () => {
   border-radius: 4px;
   font-size: 1.5rem;
   font-weight: bold;
-}
-
-.card-body {
-  padding: 1rem;
 }
 
 .message-preview {
@@ -178,7 +170,7 @@ const decline = () => {
   background: #f7fafc;
   padding: 0.75rem;
   border-radius: 4px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary-color);
 }
 
 .order-details {
@@ -191,10 +183,6 @@ const decline = () => {
 .detail {
   display: flex;
   flex-direction: column;
-}
-
-.detail .label {
-  margin-bottom: 0.5rem;
 }
 
 .detail .value {
@@ -221,30 +209,14 @@ const decline = () => {
   border-top: 1px solid #e2e8f0;
 }
 
-.btn {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-  font-size: 0.95rem;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, #4a3d7a 100%);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(91, 75, 159, 0.4);
 }
 
 .btn-secondary {
@@ -270,10 +242,6 @@ const decline = () => {
 
   .card-footer {
     flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
   }
 }
 </style>

@@ -182,22 +182,9 @@ const exportPDF = () => {
 </script>
 
 <style scoped>
+/* Specific Analytics page styles only */
 .analytics-page {
-  min-height: 100vh;
   background: #f9fafb;
-  padding: 2rem 0;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-h1 {
-  margin: 0 0 2rem 0;
-  font-size: 2rem;
-  color: #333;
 }
 
 .date-range {
@@ -214,34 +201,6 @@ h1 {
   font-size: 0.95rem;
 }
 
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-}
-
-.btn-secondary {
-  background: white;
-  border: 1px solid #e2e8f0;
-  color: #666;
-}
-
-.btn-secondary:hover {
-  background: #f9fafb;
-}
-
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -250,28 +209,7 @@ h1 {
 }
 
 .metric-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.metric-title {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.metric-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.metric-change {
-  font-size: 0.9rem;
-  font-weight: 600;
+  border-left: 4px solid var(--primary-color);
 }
 
 .metric-change.positive {
@@ -282,29 +220,11 @@ h1 {
   color: #ef4444;
 }
 
-.metric-subtitle {
-  font-size: 0.85rem;
-  color: #999;
-  margin-top: 0.5rem;
-}
-
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
   margin-bottom: 3rem;
-}
-
-.chart-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.chart-card h3 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
 }
 
 .chart-placeholder {
@@ -319,54 +239,14 @@ h1 {
   text-align: center;
 }
 
-.export-section {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.export-section h3 {
-  margin: 0 0 1rem 0;
-  color: #333;
-}
-
 .export-buttons {
   display: flex;
   gap: 1rem;
 }
 
-.top-performers {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.top-performers h3 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
-}
-
-.performers-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
 .performers-table th {
   background: #f9fafb;
-  padding: 1rem;
-  text-align: left;
   border-bottom: 2px solid #e2e8f0;
-  font-weight: 600;
-  color: #666;
-}
-
-.performers-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  color: #333;
 }
 
 .performers-table tr:hover {

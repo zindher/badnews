@@ -130,22 +130,9 @@ const openRecording = (call) => {
 </script>
 
 <style scoped>
+/* Specific History page styles only */
 .history-page {
-  min-height: 100vh;
   background: #f9fafb;
-  padding: 2rem 0;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-h1 {
-  margin: 0 0 2rem 0;
-  font-size: 2rem;
-  color: #333;
 }
 
 .filters {
@@ -166,25 +153,8 @@ h1 {
   min-width: 200px;
 }
 
-.loading {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-}
-
-.empty {
-  text-align: center;
-  padding: 3rem;
-  background: white;
-  border-radius: 8px;
-  color: #666;
-}
-
 .calls-table {
-  background: white;
-  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .table-header {
@@ -225,21 +195,10 @@ h1 {
   font-weight: 500;
 }
 
-.col-status {
-}
-
-.col-duration {
-  text-align: right;
-}
-
-.col-recording {
-  text-align: center;
-}
-
 .col-amount {
   text-align: right;
   font-weight: 600;
-  color: #667eea;
+  color: var(--primary-color);
 }
 
 .status-badge {
@@ -265,23 +224,13 @@ h1 {
   color: #1e40af;
 }
 
-.btn-small {
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
 .btn-small.btn-primary {
-  background: #667eea;
+  background: var(--primary-color);
   color: white;
 }
 
 .btn-small.btn-primary:hover {
-  background: #5568d3;
+  background: #4a3d7a;
 }
 
 .no-recording {
