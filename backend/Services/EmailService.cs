@@ -2,10 +2,10 @@ using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Threading.Tasks;
 
-namespace BadNews.Services
+namespace BadNews.Services;
+
+public class EmailService : IEmailService
 {
-    public class EmailService
-    {
         private readonly SendGridClient _sendGridClient;
         private readonly string _fromEmail;
         private readonly string _fromName;
@@ -172,4 +172,3 @@ namespace BadNews.Services
             await _sendGridClient.SendEmailAsync(msg);
         }
     }
-}

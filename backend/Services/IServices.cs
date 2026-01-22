@@ -14,9 +14,8 @@ public interface ITwilioService
 public interface IMercadoPagoService
 {
     Task<(bool Success, string PaymentId)> CreatePaymentAsync(int orderId, decimal amount, string buyerEmail, string paymentMethodId);
-    Task<(bool Success, PaymentStatus Status)> VerifyPaymentAsync(string paymentId);
-    Task<bool> RefundPaymentAsync(string paymentId, decimal amount);
-    Task<PaymentDetails> GetPaymentDetailsAsync(string paymentId);
+    Task<(bool Success, string Status)> GetPaymentStatusAsync(string paymentId);
+    Task<(bool Success, string RefundId)> RefundPaymentAsync(string paymentId, decimal amount);
 }
 
 public interface ISendGridService
@@ -28,6 +27,16 @@ public interface ISendGridService
     Task<bool> SendRefundNotificationAsync(string buyerEmail, string buyerName, int orderId, decimal amount, string reason);
     Task<bool> SendMessengerPaymentAsync(string messengerEmail, string messengerName, decimal amount, int callsCompleted);
     Task<bool> SendOrderNotificationAsync(string messengerEmail, string messengerName, int orderId, string recipientPhone, decimal amount);
+}
+
+public interface IEmailService
+{
+    Task SendOrderConfirmationAsync(string toEmail, string toName, string orderId, decimal amount);
+    Task SendOrderAcceptedAsync(string buyerEmail, string buyerName, string messengerName, string orderId);
+    Task SendPaymentSuccessAsync(string email, string name, string orderId, decimal amount, string paymentId);
+    Task SendPaymentFailedAsync(string email, string name, string orderId, string reason);
+    Task SendCallReminderAsync(string email, string name, string messengerName, string orderId);
+    Task SendEarningsNotificationAsync(string email, string name, decimal earnings, string period);
 }
 
 public interface IOrderService

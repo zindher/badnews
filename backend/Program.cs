@@ -20,9 +20,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// FluentValidation
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
-
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -67,18 +64,16 @@ builder.Services.AddAuthentication(options =>
 // Application Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IMessengerService, MessengerService>();
 builder.Services.AddScoped<ITwilioService, TwilioServiceImpl>();
 builder.Services.AddScoped<IMercadoPagoService, MercadoPagoServiceImpl>();
-builder.Services.AddScoped<ISendGridService, SendGridServiceImpl>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<ICallRetryJob, CallRetryJob>();
 builder.Services.AddScoped<ITimezoneService, TimezoneService>();
 
-// Background jobs
-builder.Services.AddHangfire(config =>
-    config.UseSqlServerStorage(settings.Database.ConnectionString));
-builder.Services.AddHangfireServer();
+// Database
+builder.Services.AddDbContext<BadNewsDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("BadNews") ?? 
+        "Server=(localdb)\\mssqllocaldb;Database=BadNews;Trusted_Connection=true;"));
 
 // Logging
 builder.Services.AddLogging();
@@ -88,19 +83,18 @@ var app = builder.Build();
 // Middleware
 app.UseErrorHandling();
 
-if (app.Environment.IsDevelopment())
+// Enable Swagger for all environments
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BadNews API V1");
+    c.RoutePrefix = string.Empty; // Make Swagger UI the root
+});
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-// Hangfire Dashboard
-app.UseHangfireDashboard("/hangfire");
 
 app.Run();

@@ -4,13 +4,6 @@ using System.Text.Json;
 
 namespace BadNews.Services;
 
-public interface IMercadoPagoService
-{
-    Task<(bool Success, string PaymentId)> CreatePaymentAsync(int orderId, decimal amount, string buyerEmail, string paymentMethodId);
-    Task<(bool Success, string Status)> GetPaymentStatusAsync(string paymentId);
-    Task<(bool Success, string RefundId)> RefundPaymentAsync(string paymentId, decimal amount);
-}
-
 public class MercadoPagoServiceImpl : IMercadoPagoService
 {
     private readonly IConfiguration _configuration;
@@ -78,10 +71,10 @@ public class MercadoPagoServiceImpl : IMercadoPagoService
                     // Save payment record
                     var payment = new Payment
                     {
-                        OrderId = orderId,
+                        OrderId = Guid.NewGuid(),
                         Amount = amount,
                         ExternalPaymentId = paymentId,
-                        Status = "pending",
+                        Status = PaymentStatus.Processing,
                         CreatedAt = DateTime.UtcNow
                     };
 

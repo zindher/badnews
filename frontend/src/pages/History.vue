@@ -304,7 +304,7 @@ h1 {
   }
 
   .calls-table {
-    display: space-y: 1rem;
+    display: block;
   }
 
   .table-row {

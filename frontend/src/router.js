@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from './stores/userStore'
 
+// Auth Pages
+import Login from './pages/Login.vue'
+
 // Buyer Pages
 import Home from './pages/Home.vue'
 import Orders from './pages/Orders.vue'
@@ -20,6 +23,7 @@ import AdminDashboard from './pages/AdminDashboard.vue'
 import Analytics from './pages/Analytics.vue'
 
 const routes = [
+  { path: '/login', component: Login },
   { path: '/', component: Home },
   { path: '/orders', component: Orders },
   { path: '/orders/new', component: CreateOrder },

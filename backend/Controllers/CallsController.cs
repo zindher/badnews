@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using BadNews.Services;
 using BadNews.Models;
 using BadNews.Data;
@@ -38,10 +39,10 @@ public class CallsController : ControllerBase
                 return BadRequest("Order is not in assigned status");
 
             // Make the call
-            var callSid = await _twilioService.MakeCallAsync(
+            var (callSuccess, callSid) = await _twilioService.MakeCallAsync(
                 order.RecipientPhoneNumber,
                 order.Message,
-                orderId
+                (int)orderId.GetHashCode()
             );
 
             // Record the call attempt

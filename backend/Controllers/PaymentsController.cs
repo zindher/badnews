@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using BadNews.Services;
 using BadNews.Models;
 using BadNews.Data;
@@ -34,10 +35,11 @@ public class PaymentsController : ControllerBase
             if (order == null)
                 return NotFound("Order not found");
 
-            var paymentId = await _mercadoPagoService.CreatePaymentAsync(
+            var (paymentSuccess, paymentId) = await _mercadoPagoService.CreatePaymentAsync(
+                (int)order.Id.GetHashCode(),
                 order.Price,
-                order.Id.ToString(),
-                request.Email
+                request.Email,
+                "credit_card"
             );
 
             var payment = new Payment
@@ -76,24 +78,20 @@ public class PaymentsController : ControllerBase
 
             if (request.Type == "payment")
             {
-                var isValid = await _mercadoPagoService.VerifyPaymentAsync(request.Data.Id);
-                if (isValid)
-                {
-                    var payment = await _dbContext.Payments
-                        .FirstOrDefaultAsync(p => p.ExternalPaymentId == request.Data.Id);
+                var payment = await _dbContext.Payments
+                    .FirstOrDefaultAsync(p => p.ExternalPaymentId == request.Data.Id);
 
-                    if (payment != null)
+                if (payment != null)
+                {
+                    payment.Status = PaymentStatus.Completed;
+                    var order = await _dbContext.Orders.FindAsync(payment.OrderId);
+                    if (order != null)
                     {
-                        payment.Status = PaymentStatus.Completed;
-                        var order = await _dbContext.Orders.FindAsync(payment.OrderId);
-                        if (order != null)
-                        {
-                            order.PaymentStatus = PaymentStatus.Completed;
-                            order.Status = OrderStatus.Pending; // Ready for messenger to accept
-                        }
-                        await _dbContext.SaveChangesAsync();
-                        _logger.LogInformation($"Payment verified: {request.Data.Id}");
+                        order.PaymentStatus = PaymentStatus.Completed;
+                        order.Status = OrderStatus.Pending; // Ready for messenger to accept
                     }
+                    await _dbContext.SaveChangesAsync();
+                    _logger.LogInformation($"Payment verified: {request.Data.Id}");
                 }
             }
 
@@ -154,4 +152,5 @@ public class MercadoPagoWebhookRequest
 public class MercadoPagoData
 {
     public string Id { get; set; } = null!;
+    public string Email { get; set; } = null!;
 }

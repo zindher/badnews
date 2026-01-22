@@ -11,8 +11,10 @@
           </button>
           <div class="nav-links" :class="{ active: mobileMenuOpen }">
             <router-link to="/" class="nav-link" @click="mobileMenuOpen = false">Home</router-link>
-            <router-link to="/orders" class="nav-link" @click="mobileMenuOpen = false">Mis Encargos</router-link>
-            <router-link to="/profile" class="nav-link" @click="mobileMenuOpen = false">Perfil</router-link>
+            <router-link v-if="userStore.isAuthenticated" to="/orders" class="nav-link" @click="mobileMenuOpen = false">Mis Encargos</router-link>
+            <router-link v-if="userStore.isAuthenticated" to="/profile" class="nav-link" @click="mobileMenuOpen = false">Perfil</router-link>
+            <button v-if="userStore.isAuthenticated" @click="logout" class="nav-link logout-btn">Salir</button>
+            <router-link v-else to="/login" class="nav-link" @click="mobileMenuOpen = false">Iniciar Sesión</router-link>
           </div>
         </div>
       </nav>
@@ -35,9 +37,17 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from './stores/userStore'
 
 const router = useRouter()
+const userStore = useUserStore()
 const mobileMenuOpen = ref(false)
+
+const logout = () => {
+  userStore.logout()
+  mobileMenuOpen.value = false
+  router.push('/')
+}
 </script>
 
 <style scoped>
@@ -109,6 +119,9 @@ header {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .nav-link:hover {
@@ -118,7 +131,15 @@ header {
 
 .nav-link.router-link-active {
   background: rgba(255, 255, 255, 0.2);
-  opacity: 1;
+}
+
+.logout-btn {
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.5);
+}
+
+.logout-btn:hover {
+  background: rgba(255, 0, 0, 0.3);
 }
 
 .main-content {

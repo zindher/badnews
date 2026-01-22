@@ -404,11 +404,12 @@
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  max-width: 900px;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1.5rem;
+  max-width: 1200px;
   margin: 0 auto;
-  align-items: center;
+  align-items: stretch;
 }
 
 .step {
@@ -417,6 +418,9 @@
   padding: 2rem 1.5rem;
   border-radius: 8px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .step-number {
@@ -681,11 +685,12 @@
   }
 
   .steps {
-    grid-template-columns: 1fr auto 1fr auto 1fr;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
   }
 
   .step-arrow {
-    display: block;
+    display: none;
   }
 
   .testimonials {
@@ -702,6 +707,28 @@
 }
 
 /* DESKTOP */
+@media (max-width: 768px) {
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .step {
+    min-height: auto;
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .how-it-works h2 {
+    font-size: 1.5rem;
+  }
+}
+
 @media (min-width: 1024px) {
   .hero {
     grid-template-columns: 1fr 1fr;
