@@ -1,41 +1,35 @@
-// Note: MercadoPago.Client requires additional setup - see deployment guide
-// using MercadoPago.Client.Common;
-// using MercadoPago.Client.Payment;
-// using MercadoPago.Config;
-// using MercadoPago.Resource.Payment;
 using BadNews.Models;
 using BadNews.Data;
+using System.Text.Json;
 
 namespace BadNews.Services;
+
+public interface IMercadoPagoService
+{
+    Task<(bool Success, string PaymentId)> CreatePaymentAsync(int orderId, decimal amount, string buyerEmail, string paymentMethodId);
+    Task<(bool Success, string Status)> GetPaymentStatusAsync(string paymentId);
+    Task<(bool Success, string RefundId)> RefundPaymentAsync(string paymentId, decimal amount);
+}
 
 public class MercadoPagoServiceImpl : IMercadoPagoService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<MercadoPagoServiceImpl> _logger;
     private readonly BadNewsDbContext _dbContext;
+    private readonly HttpClient _httpClient;
 
     public MercadoPagoServiceImpl(
         IConfiguration configuration,
         ILogger<MercadoPagoServiceImpl> logger,
-        BadNewsDbContext dbContext)
+        BadNewsDbContext dbContext,
+        HttpClient httpClient)
     {
         _configuration = configuration;
         _logger = logger;
         _dbContext = dbContext;
-
-        // Initialize Mercado Pago
-        // Note: MercadoPagoConfig.AccessToken requires MercadoPago.Client package
-        // var accessToken = configuration["MercadoPago:AccessToken"];
-        // if (!string.IsNullOrEmpty(accessToken))
-        // {
-        //     MercadoPagoConfig.AccessToken = accessToken;
-        // }
+        _httpClient = httpClient;
     }
 
-    /// <summary>
-    /// Creates a payment for an order
-    /// Note: MercadoPago.Client package required for production
-    /// </summary>
     public async Task<(bool Success, string PaymentId)> CreatePaymentAsync(
         int orderId,
         decimal amount,
@@ -46,157 +40,140 @@ public class MercadoPagoServiceImpl : IMercadoPagoService
         {
             _logger.LogInformation($"Creating payment for order {orderId}, amount: {amount}");
 
-            // Temporary stub - requires MercadoPago.Client for production
-            var paymentId = $"MP_{orderId}_{Guid.NewGuid().ToString().Substring(0, 8)}";
-
-            // Store payment in database
-            var dbPayment = new Models.Payment
+            var accessToken = _configuration["MercadoPago:AccessToken"];
+            
+            var paymentData = new
             {
-                OrderId = orderId,
-                BuyerId = (await _dbContext.Orders.FindAsync(orderId))?.BuyerId ?? Guid.Empty,
-                Amount = amount,
-                Currency = "MXN",
-                MercadoPagoId = paymentId,
-                Status = PaymentStatus.Pending,
-                PaymentMethod = paymentMethodId,
-                CreatedAt = DateTime.UtcNow
+                transaction_amount = (double)amount,
+                description = $"BadNews - Orden #{orderId}",
+                payment_method_id = paymentMethodId,
+                payer = new
+                {
+                    email = buyerEmail
+                },
+                metadata = new
+                {
+                    order_id = orderId
+                }
             };
 
-            _dbContext.Payments.Add(dbPayment);
-            await _dbContext.SaveChangesAsync();
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.mercadopago.com/v1/payments");
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(paymentData),
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
 
-            _logger.LogInformation($"Payment created: {paymentId} for order {orderId}");
-            return (true, paymentId);
+            var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                using (JsonDocument doc = JsonDocument.Parse(responseData))
+                {
+                    var root = doc.RootElement;
+                    var paymentId = root.GetProperty("id").GetString();
+
+                    // Save payment record
+                    var payment = new Payment
+                    {
+                        OrderId = orderId,
+                        Amount = amount,
+                        ExternalPaymentId = paymentId,
+                        Status = "pending",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _dbContext.Payments.Add(payment);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogInformation($"Payment created successfully: {paymentId}");
+                    return (true, paymentId);
+                }
+            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError($"MercadoPago API error: {errorContent}");
+            return (false, "");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error creating payment for order {orderId}");
-            return (false, string.Empty);
+            _logger.LogError($"Error creating payment: {ex.Message}");
+            return (false, "");
         }
     }
 
-    /// <summary>
-    /// Verifies payment status
-    /// </summary>
-    public async Task<(bool Success, PaymentStatus Status)> VerifyPaymentAsync(string paymentId)
+    public async Task<(bool Success, string Status)> GetPaymentStatusAsync(string paymentId)
     {
         try
         {
-            var dbPayment = await _dbContext.Payments
-                .FirstOrDefaultAsync(p => p.MercadoPagoId == paymentId);
+            var accessToken = _configuration["MercadoPago:AccessToken"];
 
-            if (dbPayment == null)
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.mercadopago.com/v1/payments/{paymentId}");
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
             {
-                _logger.LogWarning($"Payment not found: {paymentId}");
-                return (false, PaymentStatus.Failed);
+                var responseData = await response.Content.ReadAsStringAsync();
+                using (JsonDocument doc = JsonDocument.Parse(responseData))
+                {
+                    var root = doc.RootElement;
+                    var status = root.GetProperty("status").GetString();
+                    return (true, status ?? "unknown");
+                }
             }
 
-            _logger.LogInformation($"Payment {paymentId} status: {dbPayment.Status}");
-            return (true, dbPayment.Status);
+            return (false, "error");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error verifying payment: {paymentId}");
-            return (false, PaymentStatus.Failed);
+            _logger.LogError($"Error getting payment status: {ex.Message}");
+            return (false, "error");
         }
     }
 
-    /// <summary>
-    /// Refunds a payment
-    /// Note: MercadoPago.Client package required for production refund processing
-    /// </summary>
-    public async Task<bool> RefundPaymentAsync(string paymentId, decimal amount)
+    public async Task<(bool Success, string RefundId)> RefundPaymentAsync(string paymentId, decimal amount)
     {
         try
         {
-            _logger.LogInformation($"Processing refund for payment {paymentId}, amount: {amount}");
+            var accessToken = _configuration["MercadoPago:AccessToken"];
 
-            // Update payment status in database
-            var dbPayment = await _dbContext.Payments
-                .FirstOrDefaultAsync(p => p.MercadoPagoId == paymentId);
-
-            if (dbPayment == null)
+            var refundData = new
             {
-                _logger.LogWarning($"Payment not found for refund: {paymentId}");
-                return false;
-            }
-
-            dbPayment.Status = PaymentStatus.Refunded;
-            dbPayment.UpdatedAt = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
-
-            _logger.LogInformation($"Refund processed for payment {paymentId}");
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error refunding payment: {paymentId}");
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Gets payment details
-    /// </summary>
-    public async Task<PaymentDetails> GetPaymentDetailsAsync(string paymentId)
-    {
-        try
-        {
-            var dbPayment = await _dbContext.Payments
-                .FirstOrDefaultAsync(p => p.MercadoPagoId == paymentId);
-
-            if (dbPayment == null)
-            {
-                _logger.LogWarning($"Payment not found: {paymentId}");
-                return null;
-            }
-
-            return new PaymentDetails
-            {
-                PaymentId = dbPayment.MercadoPagoId,
-                Amount = dbPayment.Amount,
-                Status = dbPayment.Status.ToString(),
-                PaymentMethod = dbPayment.PaymentMethod,
-                CreatedAt = dbPayment.CreatedAt,
-                ApprovedAt = dbPayment.UpdatedAt,
-                ExternalReference = dbPayment.OrderId.ToString()
+                amount = (double)amount
             };
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"https://api.mercadopago.com/v1/payments/{paymentId}/refunds");
+            request.Headers.Add("Authorization", $"Bearer {accessToken}");
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(refundData),
+                System.Text.Encoding.UTF8,
+                "application/json"
+            );
+
+            var response = await _httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var responseData = await response.Content.ReadAsStringAsync();
+                using (JsonDocument doc = JsonDocument.Parse(responseData))
+                {
+                    var root = doc.RootElement;
+                    var refundId = root.GetProperty("id").GetString();
+                    _logger.LogInformation($"Refund created: {refundId}");
+                    return (true, refundId ?? "");
+                }
+            }
+
+            return (false, "");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error getting payment details: {paymentId}");
-            return null;
+            _logger.LogError($"Error refunding payment: {ex.Message}");
+            return (false, "");
         }
     }
-
-    /// <summary>
-    /// Converts Mercado Pago status to internal PaymentStatus
-    /// </summary>
-    private Models.PaymentStatus ConvertMPStatus(string mpStatus)
-    {
-        return mpStatus?.ToLower() switch
-        {
-            "approved" => Models.PaymentStatus.Completed,
-            "pending" => Models.PaymentStatus.Pending,
-            "authorized" => Models.PaymentStatus.Pending,
-            "in_process" => Models.PaymentStatus.Pending,
-            "in_mediation" => Models.PaymentStatus.Pending,
-            "rejected" => Models.PaymentStatus.Failed,
-            "cancelled" => Models.PaymentStatus.Failed,
-            "refunded" => Models.PaymentStatus.Refunded,
-            "charged_back" => Models.PaymentStatus.Failed,
-            _ => Models.PaymentStatus.Failed
-        };
-    }
-}
-
-public class PaymentDetails
-{
-    public string PaymentId { get; set; }
-    public decimal Amount { get; set; }
-    public string Status { get; set; }
-    public string PaymentMethod { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ApprovedAt { get; set; }
-    public string ExternalReference { get; set; }
 }
