@@ -128,6 +128,8 @@ npm run dev
 BadNews/
 ├── MASTER.md                         ← 📌 LEE PRIMERO
 ├── DOCUMENTATION_GUIDE.md            ← Tú estás aquí
+├── VERCEL_QUICKSTART.md              ← 🚀 Deploy rápido a Vercel
+├── VERCEL_DEPLOYMENT.md              ← 📦 Documentación completa de Vercel
 ├── database/
 │   └── COMPLETE_DATABASE.sql         ← 💾 TODO el SQL
 ├── backend/
@@ -170,6 +172,10 @@ BadNews/
 
 **Resolver un error**
 → MASTER.md → Sección "Troubleshooting"
+
+**Configurar Despliegue en Vercel**
+→ VERCEL_QUICKSTART.md (guía rápida)
+→ VERCEL_DEPLOYMENT.md (documentación completa)
 
 **Saber qué tecnologías se usan**
 → MASTER.md → Sección "Stack Tecnológico"

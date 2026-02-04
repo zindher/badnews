@@ -515,7 +515,7 @@ dotnet run
 | Frontend Pages | 🔄 75% | 75% |
 | Mobile App | 🔄 20% | 20% |
 | Testing | ⏳ 5% | 5% |
-| Deployment | ⏳ 0% | 0% |
+| Deployment | ✅ COMPLETE | 100% |
 
 ---
 
@@ -729,15 +729,27 @@ Todos los archivos CSS incluyen media queries para:
 - 🔄 Auto-deploy desde cambios locales
 
 ### Configuración de Vercel
+
+✅ **Configuración automática habilitada**
+
+El frontend está configurado para despliegue automático en Vercel. Ver documentación completa en [`VERCEL_DEPLOYMENT.md`](./VERCEL_DEPLOYMENT.md)
+
+#### Despliegue Automático:
+- **Push a `main`:** Despliega a producción
+- **Push a `develop`:** Despliega preview
+- **Pull Requests:** Crea preview único
+
+#### Comandos Manuales (opcional):
 ```bash
 # Login inicial
 npx vercel login
 
 # Deploy a producción
-npx vercel --prod
+cd frontend
+vercel --prod
 
 # Ver logs
-npx vercel logs
+vercel logs
 ```
 
 ### Parámetros Vercel
@@ -745,6 +757,18 @@ npx vercel logs
 - **Dev Command:** `npm run dev`
 - **Output Directory:** `dist`
 - **Framework:** Vite (auto-detectado)
+- **Root Directory:** `frontend`
+
+### Configuración Requerida en Vercel
+1. Variables de entorno (ver `VERCEL_DEPLOYMENT.md`)
+2. Token de Vercel en GitHub Secrets (`VERCEL_TOKEN`)
+3. Proyecto conectado: https://vercel.com/zindhers-projects/frontend
+
+### Archivos de Configuración
+- `vercel.json` - Configuración root del proyecto
+- `frontend/vercel.json` - Configuración específica del frontend
+- `.vercelignore` - Archivos excluidos del deployment
+- `.github/workflows/vercel-deploy.yml` - Workflow de GitHub Actions
 
 ### Próximas pasos
 - Conectar dominio personalizado (opcional: gritalo.vercel.app o gritalo.com)
