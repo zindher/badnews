@@ -7,6 +7,7 @@ public class CallAttempt
     public Guid MessengerId { get; set; }
     public CallAttemptStatus Status { get; set; } = CallAttemptStatus.Initiated;
     public string? CallSid { get; set; } // Twilio Call SID
+    public string? TwilioCallSid { get; set; } // Alias for CallSid
     public string? RecordingSid { get; set; } // Twilio Recording SID
     public string? RecordingUrl { get; set; } // Recording URL
     public int? RecordingDuration { get; set; } // in seconds
@@ -14,6 +15,9 @@ public class CallAttempt
     public DateTime? EndTime { get; set; }
     public int? Duration { get; set; } // Actual call duration in seconds
     public int RetryNumber { get; set; } = 1; // 1-9
+    public int? AttemptNumber { get; set; } = 1; // Alias for RetryNumber
+    public int? DurationSeconds { get; set; } // Alias for Duration
+    public DateTime? AttemptedAt { get; set; } // Alias for CreatedAt
     public string? FailureReason { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -31,4 +35,15 @@ public enum CallAttemptStatus
     Completed = 3,
     Failed = 4,
     Cancelled = 5
+}
+
+public enum CallStatus
+{
+    Queued = 0,
+    Ringing = 1,
+    InProgress = 2,
+    Completed = 3,
+    Busy = 4,
+    Failed = 5,
+    NoAnswer = 6
 }

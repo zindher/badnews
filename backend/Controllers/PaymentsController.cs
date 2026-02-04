@@ -28,7 +28,7 @@ public class PaymentsController : ControllerBase
     {
         try
         {
-            if (!Guid.TryParse(request.OrderId, out var orderId))
+            if (!int.TryParse(request.OrderId, out var orderId))
                 return BadRequest("Invalid order ID");
 
             var order = await _dbContext.Orders.FindAsync(orderId);
@@ -36,7 +36,7 @@ public class PaymentsController : ControllerBase
                 return NotFound("Order not found");
 
             var (paymentSuccess, paymentId) = await _mercadoPagoService.CreatePaymentAsync(
-                (int)order.Id.GetHashCode(),
+                order.Id,
                 order.Price,
                 request.Email,
                 "credit_card"

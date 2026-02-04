@@ -71,7 +71,8 @@ public class MercadoPagoServiceImpl : IMercadoPagoService
                     // Save payment record
                     var payment = new Payment
                     {
-                        OrderId = Guid.NewGuid(),
+                        OrderId = orderId,
+                        BuyerId = Guid.Empty, // Will be updated from order
                         Amount = amount,
                         ExternalPaymentId = paymentId,
                         Status = PaymentStatus.Processing,

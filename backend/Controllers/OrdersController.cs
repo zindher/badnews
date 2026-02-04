@@ -97,7 +97,7 @@ public class OrdersController : ControllerBase
 
     [Authorize]
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetOrderById(Guid id)
+    public async Task<IActionResult> GetOrderById(int id)
     {
         try
         {
@@ -144,7 +144,7 @@ public class OrdersController : ControllerBase
 
     [Authorize(Roles = "Messenger")]
     [HttpPut("{id}/accept")]
-    public async Task<IActionResult> AcceptOrder(Guid id)
+    public async Task<IActionResult> AcceptOrder(int id)
     {
         try
         {
@@ -176,7 +176,7 @@ public class OrdersController : ControllerBase
 
     [Authorize]
     [HttpPut("{id}/rate")]
-    public async Task<IActionResult> RateOrder(Guid id, [FromBody] RateOrderRequest request)
+    public async Task<IActionResult> RateOrder(int id, [FromBody] RateOrderRequest request)
     {
         try
         {
@@ -204,7 +204,7 @@ public class OrdersController : ControllerBase
 
     [HttpPut("{id}/status")]
     [Authorize]
-    public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] UpdateStatusRequest request)
+    public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateStatusRequest request)
     {
         try
         {

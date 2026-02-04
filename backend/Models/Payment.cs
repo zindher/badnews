@@ -20,11 +20,3 @@ public class Payment
     public virtual Order? Order { get; set; }
     public virtual User? Buyer { get; set; }
 }
-
-public enum PaymentStatus
-{
-    Pending = 0,
-    Completed = 1,
-    Failed = 2,
-    Refunded = 3
-}
