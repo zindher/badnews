@@ -41,7 +41,7 @@ public interface IEmailService
 
 public interface IOrderService
 {
-    Task<Guid> CreateOrderAsync(
+    Task<int> CreateOrderAsync(
         string buyerId, 
         string recipientPhone, 
         string recipientName, 
@@ -52,9 +52,9 @@ public interface IOrderService
         string? recipientTimezone = null, 
         string? recipientState = null,
         string? recipientEmail = null);
-    Task AssignOrderAsync(Guid orderId, string messengerId);
+    Task AssignOrderAsync(int orderId, string messengerId);
     Task<List<object>> GetAvailableOrdersAsync();
-    Task UpdateOrderStatusAsync(Guid orderId, string status);
+    Task UpdateOrderStatusAsync(int orderId, string status);
 }
 
 public interface IMessengerService

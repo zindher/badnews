@@ -28,7 +28,7 @@ public class CallsController : ControllerBase
     {
         try
         {
-            if (!Guid.TryParse(request.OrderId, out var orderId))
+            if (!int.TryParse(request.OrderId, out var orderId))
                 return BadRequest("Invalid order ID");
 
             var order = await _dbContext.Orders.FindAsync(orderId);
@@ -42,16 +42,18 @@ public class CallsController : ControllerBase
             var (callSuccess, callSid) = await _twilioService.MakeCallAsync(
                 order.RecipientPhoneNumber,
                 order.Message,
-                (int)orderId.GetHashCode()
+                orderId
             );
 
             // Record the call attempt
             var callAttempt = new CallAttempt
             {
                 OrderId = orderId,
+                MessengerId = Guid.Empty, // Will be set later
                 AttemptNumber = order.CallAttempts + 1,
-                Status = CallStatus.Queued,
-                TwilioCallSid = callSid
+                Status = CallAttemptStatus.Initiated,
+                TwilioCallSid = callSid,
+                CallSid = callSid
             };
 
             _dbContext.CallAttempts.Add(callAttempt);
@@ -93,21 +95,25 @@ public class CallsController : ControllerBase
             // Update call status
             callAttempt.Status = request.CallStatus switch
             {
-                "ringing" => CallStatus.Ringing,
-                "in-progress" => CallStatus.InProgress,
-                "completed" => CallStatus.Completed,
-                "failed" => CallStatus.Failed,
-                "no-answer" => CallStatus.NoAnswer,
-                "busy" => CallStatus.Busy,
-                _ => CallStatus.Queued
+                "ringing" => CallAttemptStatus.Ringing,
+                "in-progress" => CallAttemptStatus.Connected,
+                "completed" => CallAttemptStatus.Completed,
+                "failed" => CallAttemptStatus.Failed,
+                "no-answer" => CallAttemptStatus.Failed,
+                "busy" => CallAttemptStatus.Failed,
+                "cancelled" => CallAttemptStatus.Cancelled,
+                _ => CallAttemptStatus.Initiated
             };
 
             // Extract duration if available
             if (int.TryParse(request.Duration, out var duration))
+            {
                 callAttempt.DurationSeconds = duration;
+                callAttempt.Duration = duration;
+            }
 
             // Update connected status
-            if (callAttempt.Status == CallStatus.InProgress)
+            if (callAttempt.Status == CallAttemptStatus.Connected)
             {
                 var order = await _dbContext.Orders.FindAsync(callAttempt.OrderId);
                 if (order != null)
@@ -164,7 +170,7 @@ public class CallsController : ControllerBase
 
     [Authorize]
     [HttpGet("{orderId}/attempts")]
-    public async Task<IActionResult> GetCallAttempts(Guid orderId)
+    public async Task<IActionResult> GetCallAttempts(int orderId)
     {
         try
         {

@@ -15,7 +15,7 @@ public class OrderService : IOrderService
         _logger = logger;
     }
 
-    public async Task<Guid> CreateOrderAsync(
+    public async Task<int> CreateOrderAsync(
         string buyerId,
         string recipientPhone,
         string recipientName,
@@ -31,7 +31,6 @@ public class OrderService : IOrderService
         {
             var order = new Order
             {
-                Id = Guid.NewGuid(),
                 BuyerId = Guid.Parse(buyerId),
                 RecipientPhoneNumber = recipientPhone,
                 RecipientName = recipientName,
@@ -64,7 +63,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task AssignOrderAsync(Guid orderId, string messengerId)
+    public async Task AssignOrderAsync(int orderId, string messengerId)
     {
         try
         {
@@ -73,6 +72,7 @@ public class OrderService : IOrderService
                 throw new InvalidOperationException("Order not found");
 
             order.MessengerId = Guid.Parse(messengerId);
+            order.AcceptedMessengerId = Guid.Parse(messengerId);
             order.Status = OrderStatus.Assigned;
             order.UpdatedAt = DateTime.UtcNow;
 
@@ -115,7 +115,7 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task UpdateOrderStatusAsync(Guid orderId, string status)
+    public async Task UpdateOrderStatusAsync(int orderId, string status)
     {
         try
         {

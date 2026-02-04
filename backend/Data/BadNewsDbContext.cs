@@ -83,9 +83,10 @@ public class BadNewsDbContext : DbContext
             .HasForeignKey<Messenger>(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Messenger>()
-            .HasMany(m => m.Withdrawals)
-            .WithOne(w => w.Messenger)
+        // Withdrawal Configuration
+        modelBuilder.Entity<Withdrawal>()
+            .HasOne(w => w.Messenger)
+            .WithMany() // User can have many withdrawals
             .HasForeignKey(w => w.MessengerId)
             .OnDelete(DeleteBehavior.Cascade);
 
