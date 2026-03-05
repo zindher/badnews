@@ -4,7 +4,7 @@ import { authService } from '../services/authService'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref(null)
-  const token = ref(localStorage.getItem('token'))
+  const token = ref(localStorage.getItem('auth_token'))
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -139,7 +139,7 @@ export const useUserStore = defineStore('user', () => {
     } finally {
       user.value = null
       token.value = null
-      localStorage.removeItem('token')
+      localStorage.removeItem('auth_token')
       localStorage.removeItem('user')
       error.value = null
     }
@@ -149,7 +149,7 @@ export const useUserStore = defineStore('user', () => {
   const setAuthData = (newToken, newUser) => {
     token.value = newToken
     user.value = newUser
-    localStorage.setItem('token', newToken)
+    localStorage.setItem('auth_token', newToken)
     localStorage.setItem('user', JSON.stringify(newUser))
   }
 

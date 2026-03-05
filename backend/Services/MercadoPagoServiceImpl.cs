@@ -82,7 +82,7 @@ public class MercadoPagoServiceImpl : IMercadoPagoService
                     await _dbContext.SaveChangesAsync();
 
                     _logger.LogInformation($"Payment created successfully: {paymentId}");
-                    return (true, paymentId);
+                    return (true, paymentId ?? string.Empty);
                 }
             }
 

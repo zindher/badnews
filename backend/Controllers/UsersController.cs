@@ -4,64 +4,31 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using BadNews.Services;
 using BadNews.Data;
-using BadNews.DTOs;
 
 namespace BadNews.Controllers;
 
+/// <summary>
+/// Handles /api/users/me routes used by the frontend authService.
+/// Delegates to the same logic as AuthController where applicable.
+/// </summary>
 [ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+[Route("api/users")]
+[Authorize]
+public class UsersController : ControllerBase
 {
-    private readonly IAuthService _authService;
     private readonly BadNewsDbContext _dbContext;
-    private readonly ILogger<AuthController> _logger;
+    private readonly IAuthService _authService;
+    private readonly ILogger<UsersController> _logger;
 
-    public AuthController(IAuthService authService, BadNewsDbContext dbContext, ILogger<AuthController> logger)
+    public UsersController(BadNewsDbContext dbContext, IAuthService authService, ILogger<UsersController> logger)
     {
-        _authService = authService;
         _dbContext = dbContext;
+        _authService = authService;
         _logger = logger;
     }
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        try
-        {
-            var result = await _authService.RegisterAsync(request);
-            return Ok(new { success = true, data = result });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error registering user");
-            return BadRequest(new { success = false, message = ex.Message });
-        }
-    }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        try
-        {
-            var result = await _authService.LoginAsync(request);
-            return Ok(new { success = true, data = result });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error logging in user");
-            return Unauthorized(new { success = false, message = "Invalid credentials" });
-        }
-    }
-
-    [Authorize]
-    [HttpGet("profile")]
-    public async Task<IActionResult> GetProfile()
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMe()
     {
         try
         {
@@ -83,20 +50,21 @@ public class AuthController : ControllerBase
                     user.FirstName,
                     user.LastName,
                     user.PhoneNumber,
-                    user.Role
+                    user.Role,
+                    user.IsGoogleLinked,
+                    user.GoogleProfilePictureUrl
                 }
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting profile");
+            _logger.LogError(ex, "Error getting user profile");
             return StatusCode(500, new { success = false, message = "Internal server error" });
         }
     }
 
-    [Authorize]
-    [HttpPut("profile")]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateMeRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -118,81 +86,29 @@ public class AuthController : ControllerBase
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Profile updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating profile");
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
-    }
-
-    [HttpPost("google-login")]
-    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, [FromServices] IGoogleOAuthService googleOAuthService, [FromServices] IJwtService jwtService)
-    {
-        if (!ModelState.IsValid || string.IsNullOrEmpty(request.GoogleToken))
-            return BadRequest(new { success = false, message = "Google token is required" });
-
-        try
-        {
-            // Authenticate with Google
-            var (success, user, error) = await googleOAuthService.AuthenticateWithGoogleTokenAsync(request.GoogleToken, request.Role);
-
-            if (!success || user == null)
-                return Unauthorized(new { success = false, message = error ?? "Google authentication failed" });
-
-            // Generate JWT token
-            var token = jwtService.GenerateToken(user);
-
             return Ok(new
             {
                 success = true,
                 data = new
                 {
-                    token,
-                    userId = user.Id,
-                    email = user.Email,
-                    firstName = user.FirstName,
-                    lastName = user.LastName,
-                    role = user.Role.ToString(),
-                    profilePicture = user.GoogleProfilePictureUrl
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.PhoneNumber,
+                    user.Role
                 }
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error with Google login");
+            _logger.LogError(ex, "Error updating user profile");
             return StatusCode(500, new { success = false, message = "Internal server error" });
         }
     }
 
-    [HttpPost("link-google")]
-    [Authorize]
-    public async Task<IActionResult> LinkGoogle([FromBody] GoogleLoginRequest request, [FromServices] IGoogleOAuthService googleOAuthService)
-    {
-        try
-        {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!Guid.TryParse(userId, out var parsedUserId))
-                return Unauthorized();
-
-            var (success, user, error) = await googleOAuthService.LinkGoogleAccountAsync(parsedUserId, request.GoogleToken);
-
-            if (!success)
-                return BadRequest(new { success = false, message = error });
-
-            return Ok(new { success = true, message = "Google account linked successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking Google account");
-            return StatusCode(500, new { success = false, message = "Internal server error" });
-        }
-    }
-
-    [Authorize]
-    [HttpPut("change-password")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    [HttpPut("me/password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangeMyPasswordRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -223,9 +139,8 @@ public class AuthController : ControllerBase
         }
     }
 
-    [Authorize]
-    [HttpPut("change-email")]
-    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    [HttpPut("me/email")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeMyEmailRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -258,20 +173,21 @@ public class AuthController : ControllerBase
     }
 }
 
-public class GoogleLoginRequest
+public class UpdateMeRequest
 {
-    public string GoogleToken { get; set; } = null!;
-    public BadNews.Models.UserRole? Role { get; set; }
-}
-
-public class UpdateProfileRequest
-{
+    [Required]
+    [MaxLength(100)]
     public string FirstName { get; set; } = null!;
+
+    [Required]
+    [MaxLength(100)]
     public string LastName { get; set; } = null!;
-    public string PhoneNumber { get; set; } = null!;
+
+    [Phone]
+    public string? PhoneNumber { get; set; }
 }
 
-public class ChangePasswordRequest
+public class ChangeMyPasswordRequest
 {
     [Required]
     public string CurrentPassword { get; set; } = null!;
@@ -281,7 +197,7 @@ public class ChangePasswordRequest
     public string NewPassword { get; set; } = null!;
 }
 
-public class ChangeEmailRequest
+public class ChangeMyEmailRequest
 {
     [Required]
     [EmailAddress]

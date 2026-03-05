@@ -2,25 +2,35 @@ namespace BadNews.Models;
 
 public class Order
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BuyerId { get; set; }
-    public Guid? AcceptedMessengerId { get; set; }
+    public Guid? MessengerId { get; set; }
     public string Message { get; set; } = null!;
     public string RecipientName { get; set; } = null!;
-    public string? RecipientPhone { get; set; }
-    public string? Category { get; set; }
-    public int? WordCount { get; set; }
-    public int? EstimatedDuration { get; set; } // in minutes
-    public decimal TotalPrice { get; set; }
+    public string? RecipientPhoneNumber { get; set; }
+    public string? RecipientEmail { get; set; }
+    public string? RecipientState { get; set; }
+    public bool IsAnonymous { get; set; } = false;
+    public decimal Price { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
-    
-    // Retry tracking
+
+    // Timezone / scheduling
+    public string? PreferredCallTime { get; set; }
+    public string? RecipientTimezone { get; set; }
+
+    // Call tracking
     public int CallAttempts { get; set; } = 0;
-    public DateTime? LastRetryDate { get; set; }
-    public DateTime? NextRetryDate { get; set; }
-    
-    public string? Notes { get; set; }
+    public int RetryDay { get; set; } = 0;
+    public int DailyAttempts { get; set; } = 0;
+    public DateTime? LastCallAttemptAt { get; set; }
+    public bool CallConnected { get; set; } = false;
+    public string? CallRecordingUrl { get; set; }
+
+    // Rating
+    public int? Rating { get; set; }
+    public DateTime? RatedAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
@@ -38,7 +48,7 @@ public class Order
 public enum OrderStatus
 {
     Pending = 0,
-    Accepted = 1,
+    Assigned = 1,
     InProgress = 2,
     Completed = 3,
     Cancelled = 4,
@@ -48,27 +58,8 @@ public enum OrderStatus
 public enum PaymentStatus
 {
     Pending = 0,
-    Completed = 1,
-    Failed = 2,
-    Refunded = 3
-}
-}
-
-public enum OrderStatus
-{
-    Pending,
-    Assigned,
-    InProgress,
-    Completed,
-    Failed,
-    Cancelled
-}
-
-public enum PaymentStatus
-{
-    Pending,
-    Processing,
-    Completed,
-    Failed,
-    Refunded
+    Processing = 1,
+    Completed = 2,
+    Failed = 3,
+    Refunded = 4
 }

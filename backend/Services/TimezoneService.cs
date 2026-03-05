@@ -10,7 +10,7 @@ namespace BadNews.Services;
 /// </summary>
 public interface ITimezoneService
 {
-    string GetTimezoneByState(string state);
+    string GetTimezoneByState(string? state);
     TimeSpan GetTimezoneOffset(string timezone);
     (string time, int dayOffset, string dayLabel) ConvertTimeToTimezone(string timeString, string targetTimezone);
     bool IsValidCallTime(string timeString);
@@ -110,7 +110,7 @@ public class TimezoneService : ITimezoneService
     /// <summary>
     /// Obtiene la zona horaria basada en el estado
     /// </summary>
-    public string GetTimezoneByState(string state)
+    public string GetTimezoneByState(string? state)
     {
         if (string.IsNullOrWhiteSpace(state))
             return "CENTRO";

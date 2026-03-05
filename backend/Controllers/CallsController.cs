@@ -40,7 +40,7 @@ public class CallsController : ControllerBase
 
             // Make the call
             var (callSuccess, callSid) = await _twilioService.MakeCallAsync(
-                order.RecipientPhoneNumber,
+                order.RecipientPhoneNumber ?? string.Empty,
                 order.Message,
                 (int)orderId.GetHashCode()
             );
