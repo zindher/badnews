@@ -47,7 +47,7 @@
 | Backend | .NET Core 6.0+ (C#) |
 | Frontend | Vue 3 + Vite + Pinia |
 | Mobile | Flutter (Dart) |
-| Database | SQL Server 2022 RTM-GDR |
+| Database | Azure SQL Server (mecapro-prod.database.windows.net) |
 | Auth | JWT + Google OAuth 2.0 |
 | Pagos | Mercado Pago API |
 | Email | SendGrid |
@@ -167,8 +167,8 @@ npm run dev
 #### Backend (`backend/appsettings.json`)
 ```json
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=BadNews;Trusted_Connection=true;"
+  "Database": {
+    "ConnectionString": "Server=mecapro-prod.database.windows.net;Initial Catalog=BadNews;User ID=Mecapro2025;Password=SET_VIA_ENVIRONMENT;Persist Security Info=False;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=False;Command Timeout=30"
   },
   "Jwt": {
     "Secret": "tu-clave-secreta-jwt-muy-larga-y-segura",
@@ -528,7 +528,7 @@ Vite: 5.4+
 Pinia: 2.1+
 Axios: 1.6+
 Flutter: 3.1+
-SQL Server: 2022 RTM-GDR
+SQL Server: Azure SQL (mecapro-prod.database.windows.net)
 Node.js: 18+
 ```
 
