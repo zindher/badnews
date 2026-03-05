@@ -74,6 +74,8 @@ public class AuthService : IAuthService
         {
             UserId = user.Id.ToString(),
             Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Token = GenerateJwtToken(user),
             Role = user.Role.ToString()
         };
@@ -91,6 +93,8 @@ public class AuthService : IAuthService
         {
             UserId = user.Id.ToString(),
             Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Token = GenerateJwtToken(user),
             Role = user.Role.ToString()
         };
@@ -118,7 +122,7 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
             new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("PhoneNumber", user.PhoneNumber)
+            new Claim("PhoneNumber", user.PhoneNumber ?? string.Empty)
         };
 
         var token = new JwtSecurityToken(

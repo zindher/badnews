@@ -20,28 +20,23 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS
+// CORS - restrict to known origins in production
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        builder => builder
-            .AllowAnyOrigin()
+        policy => policy
+            .WithOrigins(allowedOrigins)
             .AllowAnyMethod()
-            .AllowAnyHeader());
+            .AllowAnyHeader()
+            .AllowCredentials());
 });
 
 // Database
-Console.WriteLine($"ConnectionString: {settings.Database.ConnectionString}");
-try
-{
-    builder.Services.AddDbContext<BadNewsDbContext>(options =>
-        options.UseSqlServer(settings.Database.ConnectionString));
-    Console.WriteLine("DbContext registered successfully");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"DbContext error: {ex.Message}");
-}
+builder.Services.AddDbContext<BadNewsDbContext>(options =>
+    options.UseSqlServer(settings.Database.ConnectionString));
 
 // Configuration
 builder.Services.Configure<AppSettings>(builder.Configuration);
@@ -95,38 +90,23 @@ builder.Services.AddLogging();
 
 var app = builder.Build();
 
-Console.WriteLine("Application built successfully");
+// Error handling middleware (global exception handler)
+app.UseErrorHandling();
 
-// Middleware
-// app.UseErrorHandling();  // Temporarily disabled
-Console.WriteLine("ErrorHandling middleware disabled");
-
-// Enable Swagger for all environments
-app.UseSwagger();
-Console.WriteLine("Swagger enabled");
-app.UseSwaggerUI(c =>
+// Swagger only in non-production environments
+if (!app.Environment.IsProduction())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BadNews API V1");
-    c.RoutePrefix = "swagger"; // Swagger available at /swagger
-});
-Console.WriteLine("SwaggerUI configured");
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BadNews API V1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 app.UseCors("AllowFrontend");
-Console.WriteLine("CORS configured");
 app.UseAuthentication();
-Console.WriteLine("Authentication configured");
 app.UseAuthorization();
-Console.WriteLine("Authorization configured");
 app.MapControllers();
-Console.WriteLine("Controllers mapped");
 
-Console.WriteLine("Starting application...");
-try
-{
-    await app.RunAsync();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Application error: {ex}");
-}
-Console.WriteLine("Application stopped");
+await app.RunAsync();

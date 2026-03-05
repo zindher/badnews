@@ -2,19 +2,16 @@ namespace BadNews.Models;
 
 public class CallAttempt
 {
-    public int Id { get; set; }
-    public int OrderId { get; set; }
-    public Guid MessengerId { get; set; }
-    public CallAttemptStatus Status { get; set; } = CallAttemptStatus.Initiated;
-    public string? CallSid { get; set; } // Twilio Call SID
-    public string? RecordingSid { get; set; } // Twilio Recording SID
-    public string? RecordingUrl { get; set; } // Recording URL
-    public int? RecordingDuration { get; set; } // in seconds
-    public DateTime? StartTime { get; set; }
-    public DateTime? EndTime { get; set; }
-    public int? Duration { get; set; } // Actual call duration in seconds
-    public int RetryNumber { get; set; } = 1; // 1-9
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid OrderId { get; set; }
+    public Guid? MessengerId { get; set; }
+    public int AttemptNumber { get; set; } = 1;
+    public CallStatus Status { get; set; } = CallStatus.Queued;
+    public string? TwilioCallSid { get; set; }
+    public string? RecordingUrl { get; set; }
+    public int? DurationSeconds { get; set; }
     public string? FailureReason { get; set; }
+    public DateTime AttemptedAt { get; set; } = DateTime.UtcNow;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -23,12 +20,14 @@ public class CallAttempt
     public virtual User? Messenger { get; set; }
 }
 
-public enum CallAttemptStatus
+public enum CallStatus
 {
-    Initiated = 0,
+    Queued = 0,
     Ringing = 1,
-    Connected = 2,
+    InProgress = 2,
     Completed = 3,
     Failed = 4,
-    Cancelled = 5
+    NoAnswer = 5,
+    Busy = 6,
+    Cancelled = 7
 }

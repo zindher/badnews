@@ -3,38 +3,62 @@ import apiClient from './apiClient'
 export const authService = {
   /**
    * Register new user
-   * @param {Object} userData - { email, password, firstName, lastName, role }
-   * @returns {Promise}
+   * @param {Object} userData - { email, password, firstName, lastName, role, termsAcceptedAt }
+   * @returns {Promise<{token, user}>}
    */
-  register(userData) {
-    return apiClient.post('/api/auth/register', userData)
+  async register(userData) {
+    const response = await apiClient.post('/api/auth/register', userData)
+    const { data } = response.data
+    return {
+      token: data.token,
+      user: {
+        id: data.userId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role,
+      },
+    }
   },
 
   /**
    * Login user
    * @param {string} email
    * @param {string} password
-   * @returns {Promise}
+   * @returns {Promise<{token, user}>}
    */
-  login(email, password) {
-    return apiClient.post('/api/auth/login', { email, password })
+  async login(email, password) {
+    const response = await apiClient.post('/api/auth/login', { email, password })
+    const { data } = response.data
+    return {
+      token: data.token,
+      user: {
+        id: data.userId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role,
+      },
+    }
   },
 
   /**
    * Get current user profile
-   * @returns {Promise}
+   * @returns {Promise<Object>}
    */
-  getProfile() {
-    return apiClient.get('/api/users/me')
+  async getProfile() {
+    const response = await apiClient.get('/api/users/me')
+    return response.data.data
   },
 
   /**
    * Update user profile
    * @param {Object} userData
-   * @returns {Promise}
+   * @returns {Promise<Object>}
    */
-  updateProfile(userData) {
-    return apiClient.put('/api/users/me', userData)
+  async updateProfile(userData) {
+    const response = await apiClient.put('/api/users/me', userData)
+    return response.data.data
   },
 
   /**
@@ -101,12 +125,24 @@ export const authService = {
    * Login with Google OAuth token
    * @param {string} googleToken - Token from Google Sign-In
    * @param {string} role - Optional: 'Buyer' or 'Messenger'
-   * @returns {Promise}
+   * @returns {Promise<{token, user}>}
    */
-  loginWithGoogle(googleToken, role = null) {
+  async loginWithGoogle(googleToken, role = null) {
     const payload = { googleToken }
     if (role) payload.role = role
-    return apiClient.post('/api/auth/google-login', payload)
+    const response = await apiClient.post('/api/auth/google-login', payload)
+    const { data } = response.data
+    return {
+      token: data.token,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName,
+        lastName: data.user.lastName,
+        role: data.user.role,
+        profilePicture: data.user.profilePicture,
+      },
+    }
   },
 
   /**

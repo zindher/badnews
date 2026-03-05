@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using BadNews.Services;
 using BadNews.Data;
 using BadNews.DTOs;
@@ -191,26 +192,69 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpPost("unlink-google")]
     [Authorize]
-    public async Task<IActionResult> UnlinkGoogle([FromServices] IGoogleOAuthService googleOAuthService)
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
         try
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (!Guid.TryParse(userId, out var parsedUserId))
                 return Unauthorized();
 
-            var success = await googleOAuthService.UnlinkGoogleAccountAsync(parsedUserId);
+            var user = await _dbContext.Users.FindAsync(parsedUserId);
+            if (user == null)
+                return NotFound();
 
-            if (!success)
-                return BadRequest(new { success = false, message = "Cannot unlink Google account" });
+            if (!_authService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
+                return BadRequest(new { success = false, message = "Current password is incorrect" });
 
-            return Ok(new { success = true, message = "Google account unlinked successfully" });
+            user.PasswordHash = _authService.HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Password changed successfully" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error unlinking Google account");
+            _logger.LogError(ex, "Error changing password");
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
+
+    [Authorize]
+    [HttpPut("change-email")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        try
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!Guid.TryParse(userId, out var parsedUserId))
+                return Unauthorized();
+
+            var existing = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == request.NewEmail);
+            if (existing != null)
+                return BadRequest(new { success = false, message = "Email already in use" });
+
+            var user = await _dbContext.Users.FindAsync(parsedUserId);
+            if (user == null)
+                return NotFound();
+
+            user.Email = request.NewEmail;
+            user.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Email changed successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing email");
             return StatusCode(500, new { success = false, message = "Internal server error" });
         }
     }
@@ -227,4 +271,15 @@ public class UpdateProfileRequest
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;
+}
+
+public class ChangePasswordRequest
+{
+    public string CurrentPassword { get; set; } = null!;
+    public string NewPassword { get; set; } = null!;
+}
+
+public class ChangeEmailRequest
+{
+    public string NewEmail { get; set; } = null!;
 }

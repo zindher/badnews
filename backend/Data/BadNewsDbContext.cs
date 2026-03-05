@@ -83,12 +83,6 @@ public class BadNewsDbContext : DbContext
             .HasForeignKey<Messenger>(m => m.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Messenger>()
-            .HasMany(m => m.Withdrawals)
-            .WithOne(w => w.Messenger)
-            .HasForeignKey(w => w.MessengerId)
-            .OnDelete(DeleteBehavior.Cascade);
-
         // Order Configuration
         modelBuilder.Entity<Order>()
             .HasKey(o => o.Id);
@@ -102,7 +96,7 @@ public class BadNewsDbContext : DbContext
         modelBuilder.Entity<Order>()
             .HasOne(o => o.Messenger)
             .WithMany(u => u.MessengerOrders)
-            .HasForeignKey(o => o.AcceptedMessengerId)
+            .HasForeignKey(o => o.MessengerId)
             .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Order>()
@@ -152,7 +146,7 @@ public class BadNewsDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<CallAttempt>()
-            .HasIndex(ca => ca.CallSid)
+            .HasIndex(ca => ca.TwilioCallSid)
             .IsUnique();
 
         modelBuilder.Entity<CallAttempt>()
@@ -250,7 +244,7 @@ public class BadNewsDbContext : DbContext
             .HasIndex(o => o.BuyerId);
 
         modelBuilder.Entity<Order>()
-            .HasIndex(o => o.AcceptedMessengerId);
+            .HasIndex(o => o.MessengerId);
 
         modelBuilder.Entity<Order>()
             .HasIndex(o => o.Status);
