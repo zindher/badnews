@@ -135,12 +135,12 @@ export const authService = {
     return {
       token: data.token,
       user: {
-        id: data.user.id,
-        email: data.user.email,
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        role: data.user.role,
-        profilePicture: data.user.profilePicture,
+        id: data.userId,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.role,
+        profilePicture: data.profilePicture,
       },
     }
   },

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using BadNews.Services;
 using BadNews.Data;
 
@@ -123,7 +124,7 @@ public class UsersController : ControllerBase
                 return NotFound();
 
             if (!_authService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
-                return BadRequest(new { success = false, message = "Current password is incorrect" });
+                return BadRequest(new { success = false, message = "Failed to update password" });
 
             user.PasswordHash = _authService.HashPassword(request.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;
@@ -174,18 +175,31 @@ public class UsersController : ControllerBase
 
 public class UpdateMeRequest
 {
+    [Required]
+    [MaxLength(100)]
     public string FirstName { get; set; } = null!;
+
+    [Required]
+    [MaxLength(100)]
     public string LastName { get; set; } = null!;
+
+    [Phone]
     public string? PhoneNumber { get; set; }
 }
 
 public class ChangeMyPasswordRequest
 {
+    [Required]
     public string CurrentPassword { get; set; } = null!;
+
+    [Required]
+    [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
     public string NewPassword { get; set; } = null!;
 }
 
 public class ChangeMyEmailRequest
 {
+    [Required]
+    [EmailAddress]
     public string NewEmail { get; set; } = null!;
 }

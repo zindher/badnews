@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using BadNews.Services;
 using BadNews.Data;
 using BadNews.DTOs;
@@ -149,15 +150,12 @@ public class AuthController : ControllerBase
                 data = new
                 {
                     token,
-                    user = new
-                    {
-                        id = user.Id,
-                        email = user.Email,
-                        firstName = user.FirstName,
-                        lastName = user.LastName,
-                        role = user.Role.ToString(),
-                        profilePicture = user.GoogleProfilePictureUrl
-                    }
+                    userId = user.Id,
+                    email = user.Email,
+                    firstName = user.FirstName,
+                    lastName = user.LastName,
+                    role = user.Role.ToString(),
+                    profilePicture = user.GoogleProfilePictureUrl
                 }
             });
         }
@@ -210,7 +208,7 @@ public class AuthController : ControllerBase
                 return NotFound();
 
             if (!_authService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
-                return BadRequest(new { success = false, message = "Current password is incorrect" });
+                return BadRequest(new { success = false, message = "Failed to update password" });
 
             user.PasswordHash = _authService.HashPassword(request.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;
@@ -275,11 +273,17 @@ public class UpdateProfileRequest
 
 public class ChangePasswordRequest
 {
+    [Required]
     public string CurrentPassword { get; set; } = null!;
+
+    [Required]
+    [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
     public string NewPassword { get; set; } = null!;
 }
 
 public class ChangeEmailRequest
 {
+    [Required]
+    [EmailAddress]
     public string NewEmail { get; set; } = null!;
 }
