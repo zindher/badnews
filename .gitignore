@@ -13,6 +13,7 @@ obj/
 *.sqlite3
 appsettings.local.json
 appsettings.Development.json
+appsettings.Production.json
 
 # Environment
 .env

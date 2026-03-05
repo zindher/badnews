@@ -1,33 +1,23 @@
 -- ================================================================
 -- BADNEWS - COMPLETE DATABASE SETUP
--- SQL Server 2022 RTM-GDR (v16.0.1165.1)
+-- Azure SQL Server (mecapro-prod.database.windows.net)
 -- ================================================================
--- Last Updated: January 21, 2026
--- Version: 2.0 - CONSOLIDATED
+-- Last Updated: March 5, 2026
+-- Version: 2.1 - AZURE SQL
 --
 -- Complete schema for BadNews platform:
 -- - Buyers: Users who place orders for personalized messages
 -- - Messengers: Users who deliver personalized messages via calls
 -- - Admins: Platform administrators
--- - Google OAuth support (NEW)
+-- - Google OAuth support
+--
+-- NOTE: Run this script while connected to the BadNews database.
+--       The database already exists on Azure SQL Server.
+--       Connection: mecapro-prod.database.windows.net | DB: BadNews
 -- ================================================================
 
 -- ================================================================
--- STEP 1: CREATE DATABASE
--- ================================================================
-
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'BadNews')
-BEGIN
-    CREATE DATABASE BadNews
-    PRINT 'Database [BadNews] created successfully'
-END
-GO
-
-USE BadNews
-GO
-
--- ================================================================
--- STEP 2: USERS TABLE (Core user table for all roles)
+-- STEP 1: USERS TABLE (Core user table for all roles)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Users')
@@ -81,7 +71,7 @@ END
 GO
 
 -- ================================================================
--- STEP 3: MESSENGERS TABLE (Extended profile for messengers)
+-- STEP 2: MESSENGERS TABLE (Extended profile for messengers)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Messengers')
@@ -120,7 +110,7 @@ END
 GO
 
 -- ================================================================
--- STEP 4: ORDERS TABLE (Personalized message orders)
+-- STEP 3: ORDERS TABLE (Personalized message orders)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Orders')
@@ -184,7 +174,7 @@ END
 GO
 
 -- ================================================================
--- STEP 5: CALL ATTEMPTS TABLE (Twilio integration & recordings)
+-- STEP 4: CALL ATTEMPTS TABLE (Twilio integration & recordings)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CallAttempts')
@@ -235,7 +225,7 @@ END
 GO
 
 -- ================================================================
--- STEP 6: CALL RETRIES TABLE (Retry scheduler: 3/day × 3 days)
+-- STEP 5: CALL RETRIES TABLE (Retry scheduler: 3/day × 3 days)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'CallRetries')
@@ -273,7 +263,7 @@ END
 GO
 
 -- ================================================================
--- STEP 7: PAYMENTS TABLE (Mercado Pago transactions)
+-- STEP 6: PAYMENTS TABLE (Mercado Pago transactions)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Payments')
@@ -320,7 +310,7 @@ END
 GO
 
 -- ================================================================
--- STEP 8: MESSAGES TABLE (Order-related chat)
+-- STEP 7: MESSAGES TABLE (Order-related chat)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Messages')
@@ -353,7 +343,7 @@ END
 GO
 
 -- ================================================================
--- STEP 9: WITHDRAWALS TABLE (Messenger earnings withdrawals)
+-- STEP 8: WITHDRAWALS TABLE (Messenger earnings withdrawals)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Withdrawals')
@@ -394,7 +384,7 @@ END
 GO
 
 -- ================================================================
--- STEP 10: DISPUTES TABLE (Order disputes & resolutions)
+-- STEP 9: DISPUTES TABLE (Order disputes & resolutions)
 -- ================================================================
 
 IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Disputes')
@@ -431,17 +421,6 @@ END
 GO
 
 -- ================================================================
--- STEP 11: HANGFIRE TABLES (Background jobs for retries)
--- ================================================================
-
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'BadNews_Hangfire')
-BEGIN
-    CREATE DATABASE BadNews_Hangfire
-    PRINT 'Database [BadNews_Hangfire] created successfully'
-END
-GO
-
--- ================================================================
 -- FINAL SUMMARY
 -- ================================================================
 
@@ -451,12 +430,12 @@ PRINT '║          BADNEWS DATABASE SETUP COMPLETE ✅               ║'
 PRINT '╚═══════════════════════════════════════════════════════════╝'
 PRINT ''
 PRINT '📊 Database Information:'
+PRINT '   • Server: mecapro-prod.database.windows.net'
 PRINT '   • Name: BadNews'
-PRINT '   • Version: 2.0 - CONSOLIDATED'
-PRINT '   • SQL Server: 2022 RTM-GDR v16.0.1165.1'
-PRINT '   • Last Updated: January 21, 2026'
+PRINT '   • Version: 2.1 - AZURE SQL'
+PRINT '   • Last Updated: March 5, 2026'
 PRINT ''
-PRINT '📋 Tables Created (10 total):'
+PRINT '📋 Tables Created (9 total):'
 PRINT '   ✓ Users (core user table, all roles)'
 PRINT '   ✓ Messengers (extended messenger profile)'
 PRINT '   ✓ Orders (personalized message orders)'
@@ -466,7 +445,6 @@ PRINT '   ✓ Payments (Mercado Pago transactions)'
 PRINT '   ✓ Messages (order-related chat)'
 PRINT '   ✓ Withdrawals (earnings withdrawals)'
 PRINT '   ✓ Disputes (order dispute resolution)'
-PRINT '   ✓ EFMigrationsHistory (Entity Framework)'
 PRINT ''
 PRINT '🔐 Security Features:'
 PRINT '   ✓ Role-based access (Buyer, Messenger, Admin)'
@@ -494,10 +472,11 @@ PRINT '   ✓ Complete documentation'
 PRINT ''
 PRINT '═══════════════════════════════════════════════════════════'
 PRINT 'Next Steps:'
-PRINT '   1. Configure appsettings.json with connection string'
+PRINT '   1. Set Database__ConnectionString environment variable with the'
+PRINT '      actual password for mecapro-prod.database.windows.net'
 PRINT '   2. Run dotnet ef database update (if using EF Migrations)'
 PRINT '   3. Start backend application'
-PRINT '   4. Verify tables in SQL Server Management Studio'
+PRINT '   4. Verify tables in SQL Server Management Studio (Azure)'
 PRINT '═══════════════════════════════════════════════════════════'
 PRINT ''
 GO
