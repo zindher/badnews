@@ -95,6 +95,12 @@ jobs:
     - name: Build APK
       run: flutter build apk --release
       working-directory: mobile
+    
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release
+        path: mobile/build/app/outputs/flutter-apk/app-release.apk
 
   # Deploy to Staging
   deploy-staging:
@@ -111,18 +117,20 @@ jobs:
         name: backend-build
         path: backend/publish
     
-    - name: Download Frontend Artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: frontend-build
-        path: frontend/dist
-    
     - name: Deploy to Azure (Staging)
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'badnews-api-staging'
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_STAGING }}
         package: backend/publish
+    
+    - name: Deploy Frontend to Vercel (Preview)
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: frontend
 
   # Deploy to Production
   deploy-production:
@@ -142,11 +150,11 @@ jobs:
         name: backend-build
         path: backend/publish
     
-    - name: Download Frontend Artifact
+    - name: Download APK Artifact
       uses: actions/download-artifact@v3
       with:
-        name: frontend-build
-        path: frontend/dist
+        name: app-release
+        path: apk-release
     
     - name: Deploy Backend to Azure
       uses: azure/webapps-deploy@v2
@@ -155,11 +163,25 @@ jobs:
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
         package: backend/publish
     
-    - name: Deploy Frontend
-      uses: actions/deploy-pages@v2
+    - name: Deploy Frontend to Vercel
+      uses: amondnet/vercel-action@v25
       with:
-        artifact_name: frontend-build
-        path: frontend/dist
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: frontend
+        vercel-args: '--prod'
+    
+    - name: Publish APK to GitHub Releases
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: latest
+        name: Latest Release
+        files: apk-release/app-release.apk
+        prerelease: false
+        allowUpdates: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Notify Slack
       uses: slackapi/slack-github-action@v1.24.0
