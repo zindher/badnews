@@ -110,6 +110,22 @@ export const authService = {
   },
 
   /**
+   * Login with Apple Sign-In identity token
+   * @param {string} identityToken - Identity token from Apple Sign-In
+   * @param {string|null} firstName - User's first name (only on first sign-in)
+   * @param {string|null} lastName - User's last name (only on first sign-in)
+   * @param {string|null} role - Optional: 'Buyer' or 'Messenger'
+   * @returns {Promise}
+   */
+  loginWithApple(identityToken, firstName = null, lastName = null, role = null) {
+    const payload = { identityToken }
+    if (firstName) payload.firstName = firstName
+    if (lastName) payload.lastName = lastName
+    if (role) payload.role = role
+    return apiClient.post('/api/auth/apple-login', payload)
+  },
+
+  /**
    * Link Google account to existing user
    * @param {string} googleToken - Token from Google Sign-In
    * @returns {Promise}

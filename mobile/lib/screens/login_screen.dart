@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -11,76 +10,46 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  late TextEditingController _emailController;
-  late TextEditingController _passwordController;
   bool _isLoading = false;
-  bool _obscurePassword = true;
-  String? _errorMessage;
+  final AuthService _authService = AuthService();
 
-  @override
-  void initState() {
-    super.initState();
-    _emailController = TextEditingController();
-    _passwordController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _handleLogin() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-
-    if (email.isEmpty || password.isEmpty) {
-      _showError('Por favor completa todos los campos');
-      return;
-    }
-
-    if (!_isValidEmail(email)) {
-      _showError('Por favor ingresa un email válido');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
     try {
-      final apiService = ApiService();
-      // TODO: Implement login endpoint in backend
-      // For now, simulate login
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Simulate successful login
-      final token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-      final userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      final result = await _authService.signInWithGoogle();
 
       if (!mounted) return;
 
-      // Save token and user info
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-      await prefs.setString('user_id', userId);
-      await prefs.setString('user_name', email.split('@')[0]);
-
-      Navigator.of(context).pushReplacementNamed('/home');
-    } catch (e) {
-      if (!mounted) return;
-      _showError('Error de login: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      if (result.isSuccess) {
+        await _authService.saveAuthData(result.token!, result.user!);
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (!result.isCancelled) {
+        _showError(result.errorMessage ?? 'Error al iniciar sesión con Google');
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await _authService.signInWithApple();
+
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        await _authService.saveAuthData(result.token!, result.user!);
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (!result.isCancelled) {
+        _showError(result.errorMessage ?? 'Error al iniciar sesión con Apple');
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   void _showError(String message) {
-    setState(() => _errorMessage = message);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -88,13 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
         duration: const Duration(seconds: 3),
       ),
     );
-  }
-
-  bool _isValidEmail(String email) {
-    final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    );
-    return emailRegex.hasMatch(email);
   }
 
   @override
@@ -111,13 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-        child: SingleChildScrollView(
+        child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: MediaQuery.of(context).padding.top + 20),
-                // Logo section
+                // Logo
                 Container(
                   width: 100,
                   height: 100,
@@ -138,16 +100,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.purple.shade700,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Text(
                   'BadNews',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 32,
+                        fontSize: 36,
                       ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Text(
                   'Ingresa a tu cuenta',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -155,145 +117,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontSize: 16,
                       ),
                 ),
-                const SizedBox(height: 35),
-                // Email field
-                TextField(
-                  controller: _emailController,
-                  enabled: !_isLoading,
-                  keyboardType: TextInputType.emailAddress,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Correo electrónico',
-                    hintStyle: TextStyle(color: Colors.white60),
-                    prefixIcon: Icon(
-                      Icons.email_outlined,
-                      color: Colors.white70,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white30),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white30),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white, width: 2),
-                    ),
+                const SizedBox(height: 48),
+
+                if (_isLoading)
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  )
+                else ...[
+                  // Google Sign-In button
+                  _SocialSignInButton(
+                    onPressed: _handleGoogleSignIn,
+                    label: 'Continuar con Google',
+                    icon: _GoogleIcon(),
+                    backgroundColor: Colors.white,
+                    textColor: Colors.black87,
                   ),
-                ),
-                const SizedBox(height: 12),
-                // Password field
-                TextField(
-                  controller: _passwordController,
-                  enabled: !_isLoading,
-                  obscureText: _obscurePassword,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Contraseña',
-                    hintStyle: TextStyle(color: Colors.white60),
-                    prefixIcon: Icon(
-                      Icons.lock_outline,
-                      color: Colors.white70,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: Colors.white70,
-                      ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.1),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white30),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white30),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                // Forgot password link
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: _isLoading ? null : () {
-                      // TODO: Navigate to forgot password
-                    },
-                    child: Text(
-                      '¿Olvidaste tu contraseña?',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Login button
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.white54,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: _isLoading
-                        ? SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.purple.shade700,
-                              ),
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : Text(
-                            'Iniciar sesión',
+                  const SizedBox(height: 16),
+
+                  // Divider
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.white38)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text('O',
                             style: TextStyle(
-                              color: Colors.purple.shade700,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
+                                color: Colors.white70, fontSize: 14)),
+                      ),
+                      Expanded(child: Divider(color: Colors.white38)),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                // Info text about account creation
-                Center(
-                  child: Text(
-                    '📌 Tu cuenta será creada por un administrador',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                    ),
+                  const SizedBox(height: 16),
+
+                  // Apple Sign-In button
+                  _SocialSignInButton(
+                    onPressed: _handleAppleSignIn,
+                    label: 'Continuar con Apple',
+                    icon: const Icon(Icons.apple, color: Colors.white, size: 24),
+                    backgroundColor: Colors.black,
+                    textColor: Colors.white,
                   ),
-                ),
-                const SizedBox(height: 16),
+                ],
               ],
             ),
           ),
@@ -302,3 +166,131 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Reusable social sign-in button widget
+// ---------------------------------------------------------------------------
+
+class _SocialSignInButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final String label;
+  final Widget icon;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const _SocialSignInButton({
+    required this.onPressed,
+    required this.label,
+    required this.icon,
+    required this.backgroundColor,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 4,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            icon,
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Google "G" icon (SVG-like using CustomPaint)
+// ---------------------------------------------------------------------------
+
+class _GoogleIcon extends StatelessWidget {
+  const _GoogleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: CustomPaint(painter: _GoogleIconPainter()),
+    );
+  }
+}
+
+class _GoogleIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double cx = size.width / 2;
+    final double cy = size.height / 2;
+    final double r = size.width / 2;
+
+    // Blue segment
+    final paintBlue = Paint()..color = const Color(0xFF4285F4);
+    // Red segment
+    final paintRed = Paint()..color = const Color(0xFFEA4335);
+    // Yellow segment
+    final paintYellow = Paint()..color = const Color(0xFFFBBC05);
+    // Green segment
+    final paintGreen = Paint()..color = const Color(0xFF34A853);
+
+    canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: r),
+        -1.57,
+        3.14,
+        true,
+        paintBlue);
+    canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: r),
+        1.57,
+        1.57,
+        true,
+        paintRed);
+    canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: r),
+        0,
+        1.57,
+        true,
+        paintYellow);
+    canvas.drawArc(
+        Rect.fromCircle(center: Offset(cx, cy), radius: r),
+        -1.57,
+        -1.57,
+        true,
+        paintGreen);
+
+    // White inner circle
+    canvas.drawCircle(
+        Offset(cx, cy), r * 0.62, Paint()..color = Colors.white);
+
+    // Right bar for "G"
+    canvas.drawRect(
+      Rect.fromLTWH(cx, cy - r * 0.2, r * 0.9, r * 0.4),
+      paintBlue,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+

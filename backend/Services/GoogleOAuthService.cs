@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Net.Http;
+using System.Security.Cryptography;
 using BadNews.Models;
 using BadNews.Data;
 using Microsoft.EntityFrameworkCore;
@@ -101,7 +102,7 @@ public class GoogleOAuthService : IGoogleOAuthService
                 IsActive = true,
                 EmailVerified = true, // Google emails are verified
                 LastLogin = DateTime.UtcNow,
-                PasswordHash = "GOOGLE_OAUTH" // Mark as Google auth
+                PasswordHash = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             };
 
             _context.Users.Add(newUser);
@@ -177,10 +178,10 @@ public class GoogleOAuthService : IGoogleOAuthService
             if (user == null || !user.IsGoogleLinked)
                 return false;
 
-            // Don't unlink if user has no password (can't login)
-            if (user.PasswordHash == "GOOGLE_OAUTH")
+            // Don't unlink if user has no alternative sign-in method
+            if (!user.IsAppleLinked)
             {
-                _logger.LogWarning($"Cannot unlink Google from user with no password: {userId}");
+                _logger.LogWarning($"Cannot unlink Google from user with no alternative sign-in method: {userId}");
                 return false;
             }
 
