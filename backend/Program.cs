@@ -76,6 +76,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ITwilioService, TwilioServiceImpl>();
 builder.Services.AddHttpClient<IMercadoPagoService, MercadoPagoServiceImpl>();
 builder.Services.AddHttpClient<IGoogleOAuthService, GoogleOAuthService>();
+builder.Services.AddHttpClient<IAppleSignInService, AppleSignInService>();
 
 // Email Service Factory
 builder.Services.AddScoped<IEmailService>(provider =>

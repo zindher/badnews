@@ -214,6 +214,54 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { success = false, message = "Internal server error" });
         }
     }
+
+    [HttpPost("apple-login")]
+    public async Task<IActionResult> AppleLogin([FromBody] AppleLoginRequest request, [FromServices] IAppleSignInService appleSignInService, [FromServices] IJwtService jwtService)
+    {
+        if (!ModelState.IsValid || string.IsNullOrEmpty(request.IdentityToken))
+            return BadRequest(new { success = false, message = "Apple identity token is required" });
+
+        try
+        {
+            var (success, user, error) = await appleSignInService.AuthenticateWithAppleTokenAsync(
+                request.IdentityToken, request.FirstName, request.LastName, request.Role);
+
+            if (!success || user == null)
+                return Unauthorized(new { success = false, message = error ?? "Apple authentication failed" });
+
+            var token = jwtService.GenerateToken(user);
+
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    token,
+                    user = new
+                    {
+                        id = user.Id,
+                        email = user.Email,
+                        firstName = user.FirstName,
+                        lastName = user.LastName,
+                        role = user.Role.ToString()
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error with Apple login");
+            return StatusCode(500, new { success = false, message = "Internal server error" });
+        }
+    }
+}
+
+public class AppleLoginRequest
+{
+    public string IdentityToken { get; set; } = null!;
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public BadNews.Models.UserRole? Role { get; set; }
 }
 
 public class GoogleLoginRequest

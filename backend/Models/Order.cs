@@ -44,31 +44,3 @@ public enum OrderStatus
     Cancelled = 4,
     Failed = 5
 }
-
-public enum PaymentStatus
-{
-    Pending = 0,
-    Completed = 1,
-    Failed = 2,
-    Refunded = 3
-}
-}
-
-public enum OrderStatus
-{
-    Pending,
-    Assigned,
-    InProgress,
-    Completed,
-    Failed,
-    Cancelled
-}
-
-public enum PaymentStatus
-{
-    Pending,
-    Processing,
-    Completed,
-    Failed,
-    Refunded
-}

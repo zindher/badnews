@@ -29,6 +29,10 @@ public class User
     public string? GoogleProfilePictureUrl { get; set; }
     public bool IsGoogleLinked { get; set; } = false;
 
+    // Apple Sign-In
+    public string? AppleId { get; set; }
+    public bool IsAppleLinked { get; set; } = false;
+
     // Terms and Conditions
     public DateTime? TermsAcceptedAt { get; set; }
     public string? TermsAcceptedVersion { get; set; } = "1.0"; // For versioning T&C
