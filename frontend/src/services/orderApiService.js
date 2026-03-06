@@ -6,7 +6,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getOrders() {
-    return apiClient.get('/api/orders')
+    return apiClient.get('/api/orders').then(r => r.data)
   },
 
   /**
@@ -15,7 +15,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getOrder(orderId) {
-    return apiClient.get(`/api/orders/${orderId}`)
+    return apiClient.get(`/api/orders/${orderId}`).then(r => r.data)
   },
 
   /**
@@ -24,7 +24,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   createOrder(orderData) {
-    return apiClient.post('/api/orders', orderData)
+    return apiClient.post('/api/orders', orderData).then(r => r.data)
   },
 
   /**
@@ -34,7 +34,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   updateOrderStatus(orderId, status) {
-    return apiClient.put(`/api/orders/${orderId}/status`, { status })
+    return apiClient.put(`/api/orders/${orderId}/status`, { status }).then(r => r.data)
   },
 
   /**
@@ -43,7 +43,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   cancelOrder(orderId) {
-    return apiClient.delete(`/api/orders/${orderId}`)
+    return apiClient.delete(`/api/orders/${orderId}`).then(r => r.data)
   },
 
   /**
@@ -51,7 +51,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getMessengers() {
-    return apiClient.get('/api/messengers')
+    return apiClient.get('/api/messengers').then(r => r.data)
   },
 
   /**
@@ -60,7 +60,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getMessenger(messengerId) {
-    return apiClient.get(`/api/messengers/${messengerId}`)
+    return apiClient.get(`/api/messengers/${messengerId}`).then(r => r.data)
   },
 
   /**
@@ -68,7 +68,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getAvailableOrders() {
-    return apiClient.get('/api/orders?status=pending')
+    return apiClient.get('/api/orders?status=pending').then(r => r.data)
   },
 
   /**
@@ -77,7 +77,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   acceptOrder(orderId) {
-    return apiClient.post(`/api/orders/${orderId}/accept`, {})
+    return apiClient.post(`/api/orders/${orderId}/accept`, {}).then(r => r.data)
   },
 
   /**
@@ -87,7 +87,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   sendMessage(orderId, content) {
-    return apiClient.post(`/api/orders/${orderId}/messages`, { content })
+    return apiClient.post(`/api/orders/${orderId}/messages`, { content }).then(r => r.data)
   },
 
   /**
@@ -96,7 +96,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getMessages(orderId) {
-    return apiClient.get(`/api/orders/${orderId}/messages`)
+    return apiClient.get(`/api/orders/${orderId}/messages`).then(r => r.data)
   },
 
   /**
@@ -105,7 +105,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   markMessageAsRead(messageId) {
-    return apiClient.put(`/api/messages/${messageId}/read`, {})
+    return apiClient.put(`/api/messages/${messageId}/read`, {}).then(r => r.data)
   },
 
   /**
@@ -114,7 +114,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getCallAttempts(orderId) {
-    return apiClient.get(`/api/calls/${orderId}/attempts`)
+    return apiClient.get(`/api/calls/${orderId}/attempts`).then(r => r.data)
   },
 
   /**
@@ -123,7 +123,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getCallRecording(callAttemptId) {
-    return apiClient.get(`/api/calls/${callAttemptId}/recording`)
+    return apiClient.get(`/api/calls/${callAttemptId}/recording`).then(r => r.data)
   },
 
   /**
@@ -137,7 +137,7 @@ export const orderApiService = {
     return apiClient.post(`/api/orders/${orderId}/dispute`, {
       reason,
       description,
-    })
+    }).then(r => r.data)
   },
 
   /**
@@ -146,7 +146,7 @@ export const orderApiService = {
    * @returns {Promise}
    */
   getDisputes(orderId) {
-    return apiClient.get(`/api/orders/${orderId}/disputes`)
+    return apiClient.get(`/api/orders/${orderId}/disputes`).then(r => r.data)
   },
 }
 

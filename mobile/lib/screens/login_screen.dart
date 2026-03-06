@@ -52,21 +52,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final apiService = ApiService();
-      // TODO: Implement login endpoint in backend
-      // For now, simulate login
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Simulate successful login
-      final token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-      final userId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+      final data = await apiService.login(email, password);
 
       if (!mounted) return;
 
       // Save token and user info
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token);
-      await prefs.setString('user_id', userId);
-      await prefs.setString('user_name', email.split('@')[0]);
+      await prefs.setString('auth_token', data['token'] ?? '');
+      await prefs.setString('user_id', data['userId'] ?? data['id'] ?? '');
+      await prefs.setString('user_name',
+          data['firstName'] ?? data['name'] ?? email.split('@')[0]);
 
       Navigator.of(context).pushReplacementNamed('/home');
     } catch (e) {

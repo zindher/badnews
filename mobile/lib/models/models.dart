@@ -1,3 +1,103 @@
+class UserModel {
+  final String id;
+  final String name;
+  final String email;
+  final String? avatarUrl;
+  final double rating;
+  final int completedOrders;
+
+  UserModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.avatarUrl,
+    required this.rating,
+    required this.completedOrders,
+  });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    final firstName = json['firstName'] ?? '';
+    final lastName = json['lastName'] ?? '';
+    return UserModel(
+      id: json['id'] ?? '',
+      name: '$firstName $lastName'.trim().isEmpty ? (json['name'] ?? '') : '$firstName $lastName'.trim(),
+      email: json['email'] ?? '',
+      avatarUrl: json['googleProfilePictureUrl'] ?? json['avatarUrl'],
+      rating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
+      completedOrders: json['totalCompletedOrders'] ?? 0,
+    );
+  }
+}
+
+class RecordingModel {
+  final String id;
+  final int duration;
+  final String createdAt;
+  final String? messengerName;
+  final String? url;
+
+  RecordingModel({
+    required this.id,
+    required this.duration,
+    required this.createdAt,
+    this.messengerName,
+    this.url,
+  });
+
+  factory RecordingModel.fromJson(Map<String, dynamic> json) {
+    return RecordingModel(
+      id: json['id'] ?? '',
+      duration: json['duration'] ?? 0,
+      createdAt: json['createdAt'] ?? '',
+      messengerName: json['messengerName'],
+      url: json['url'] ?? json['recordingUrl'],
+    );
+  }
+}
+
+class ChatMessage {
+  final String id;
+  final String senderId;
+  final String content;
+  final String timestamp;
+
+  ChatMessage({
+    required this.id,
+    required this.senderId,
+    required this.content,
+    required this.timestamp,
+  });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'] ?? '',
+      senderId: json['senderId'] ?? '',
+      content: json['content'] ?? '',
+      timestamp: json['createdAt'] ?? json['timestamp'] ?? '',
+    );
+  }
+}
+
+class TransactionModel {
+  final String orderId;
+  final String date;
+  final double amount;
+
+  TransactionModel({
+    required this.orderId,
+    required this.date,
+    required this.amount,
+  });
+
+  factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    return TransactionModel(
+      orderId: json['orderId'] ?? '',
+      date: json['createdAt'] ?? json['date'] ?? '',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
 class OrderModel {
   final String id;
   final String recipientName;
@@ -28,7 +128,7 @@ class OrderModel {
       recipientPhone: json['recipientPhone'] ?? '',
       message: json['message'] ?? '',
       isAnonymous: json['isAnonymous'] ?? false,
-      price: (json['price'] as num).toDouble(),
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? 'Pending',
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toString()),
       buyerName: json['buyerName'],
@@ -72,10 +172,10 @@ class MessengerModel {
       id: json['id'] ?? '',
       userId: json['userId'] ?? '',
       isAvailable: json['isAvailable'] ?? false,
-      averageRating: (json['averageRating'] as num).toDouble(),
+      averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
       totalCompletedOrders: json['totalCompletedOrders'] ?? 0,
-      totalEarnings: (json['totalEarnings'] as num).toDouble(),
-      pendingBalance: (json['pendingBalance'] as num).toDouble(),
+      totalEarnings: (json['totalEarnings'] as num?)?.toDouble() ?? 0.0,
+      pendingBalance: (json['pendingBalance'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
