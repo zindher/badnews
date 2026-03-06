@@ -2,7 +2,7 @@ namespace BadNews.Models;
 
 public class Withdrawal
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Guid MessengerId { get; set; }
     public decimal Amount { get; set; }
     public WithdrawalStatus Status { get; set; } = WithdrawalStatus.Pending;

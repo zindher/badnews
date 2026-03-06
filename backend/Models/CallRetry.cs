@@ -2,8 +2,8 @@ namespace BadNews.Models;
 
 public class CallRetry
 {
-    public int Id { get; set; }
-    public int OrderId { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid OrderId { get; set; }
     public int RetryNumber { get; set; } // 1-9
     public DateTime ScheduledAt { get; set; }
     public DateTime? ExecutedAt { get; set; }

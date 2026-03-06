@@ -2,8 +2,8 @@ namespace BadNews.Models;
 
 public class Dispute
 {
-    public int Id { get; set; }
-    public int OrderId { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid OrderId { get; set; }
     public Guid ReportedById { get; set; }
     public string Reason { get; set; } = null!;
     public string? Description { get; set; }

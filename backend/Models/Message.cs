@@ -2,8 +2,8 @@ namespace BadNews.Models;
 
 public class Message
 {
-    public int Id { get; set; }
-    public int OrderId { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid OrderId { get; set; }
     public Guid SenderId { get; set; }
     public string Content { get; set; } = null!;
     public bool IsRead { get; set; } = false;

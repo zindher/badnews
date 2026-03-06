@@ -1,5 +1,4 @@
 using BadNews.Models;
-using BadNews.Data;
 using System.Text.Json;
 
 namespace BadNews.Services;
@@ -8,18 +7,15 @@ public class MercadoPagoServiceImpl : IMercadoPagoService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<MercadoPagoServiceImpl> _logger;
-    private readonly BadNewsDbContext _dbContext;
     private readonly HttpClient _httpClient;
 
     public MercadoPagoServiceImpl(
         IConfiguration configuration,
         ILogger<MercadoPagoServiceImpl> logger,
-        BadNewsDbContext dbContext,
         HttpClient httpClient)
     {
         _configuration = configuration;
         _logger = logger;
-        _dbContext = dbContext;
         _httpClient = httpClient;
     }
 
@@ -68,18 +64,11 @@ public class MercadoPagoServiceImpl : IMercadoPagoService
                     var root = doc.RootElement;
                     var paymentId = root.GetProperty("id").GetString();
 
-                    // Save payment record
-                    var payment = new Payment
+                    if (string.IsNullOrEmpty(paymentId))
                     {
-                        OrderId = Guid.NewGuid(),
-                        Amount = amount,
-                        ExternalPaymentId = paymentId,
-                        Status = PaymentStatus.Processing,
-                        CreatedAt = DateTime.UtcNow
-                    };
-
-                    _dbContext.Payments.Add(payment);
-                    await _dbContext.SaveChangesAsync();
+                        _logger.LogError("MercadoPago returned null payment ID");
+                        return (false, string.Empty);
+                    }
 
                     _logger.LogInformation($"Payment created successfully: {paymentId}");
                     return (true, paymentId);
