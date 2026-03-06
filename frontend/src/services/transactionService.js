@@ -7,7 +7,7 @@ export const paymentService = {
    * @returns {Promise}
    */
   createPayment(orderId) {
-    return apiClient.post(`/api/payments/${orderId}`, {})
+    return apiClient.post(`/api/payments/${orderId}`, {}).then(r => r.data)
   },
 
   /**
@@ -16,7 +16,7 @@ export const paymentService = {
    * @returns {Promise}
    */
   getPaymentStatus(paymentId) {
-    return apiClient.get(`/api/payments/${paymentId}`)
+    return apiClient.get(`/api/payments/${paymentId}`).then(r => r.data)
   },
 
   /**
@@ -24,7 +24,7 @@ export const paymentService = {
    * @returns {Promise}
    */
   getPayments() {
-    return apiClient.get('/api/payments')
+    return apiClient.get('/api/payments').then(r => r.data)
   },
 
   /**
@@ -33,7 +33,7 @@ export const paymentService = {
    * @returns {Promise}
    */
   refundPayment(paymentId) {
-    return apiClient.post(`/api/payments/${paymentId}/refund`, {})
+    return apiClient.post(`/api/payments/${paymentId}/refund`, {}).then(r => r.data)
   },
 
   /**
@@ -41,7 +41,7 @@ export const paymentService = {
    * @returns {Promise}
    */
   getPaymentMethods() {
-    return apiClient.get('/api/payments/methods', {})
+    return apiClient.get('/api/payments/methods', {}).then(r => r.data)
   },
 
   /**
@@ -50,7 +50,7 @@ export const paymentService = {
    * @returns {Promise}
    */
   processWebhook(webhookData) {
-    return apiClient.post('/api/payments/webhook', webhookData)
+    return apiClient.post('/api/payments/webhook', webhookData).then(r => r.data)
   },
 }
 
@@ -67,7 +67,7 @@ export const withdrawalService = {
       amount,
       bankAccount,
       bankName,
-    })
+    }).then(r => r.data)
   },
 
   /**
@@ -75,7 +75,7 @@ export const withdrawalService = {
    * @returns {Promise}
    */
   getWithdrawals() {
-    return apiClient.get('/api/withdrawals')
+    return apiClient.get('/api/withdrawals').then(r => r.data)
   },
 
   /**
@@ -84,7 +84,7 @@ export const withdrawalService = {
    * @returns {Promise}
    */
   getWithdrawal(withdrawalId) {
-    return apiClient.get(`/api/withdrawals/${withdrawalId}`)
+    return apiClient.get(`/api/withdrawals/${withdrawalId}`).then(r => r.data)
   },
 
   /**
@@ -92,7 +92,7 @@ export const withdrawalService = {
    * @returns {Promise}
    */
   getEarnings() {
-    return apiClient.get('/api/messengers/me/earnings')
+    return apiClient.get('/api/messengers/me/earnings').then(r => r.data)
   },
 
   /**
@@ -100,7 +100,7 @@ export const withdrawalService = {
    * @returns {Promise}
    */
   getEarningsHistory() {
-    return apiClient.get('/api/messengers/me/earnings/history')
+    return apiClient.get('/api/messengers/me/earnings/history').then(r => r.data)
   },
 
   /**
@@ -109,7 +109,7 @@ export const withdrawalService = {
    * @returns {Promise}
    */
   approveWithdrawal(withdrawalId) {
-    return apiClient.put(`/api/withdrawals/${withdrawalId}/approve`, {})
+    return apiClient.put(`/api/withdrawals/${withdrawalId}/approve`, {}).then(r => r.data)
   },
 
   /**
@@ -119,7 +119,7 @@ export const withdrawalService = {
    * @returns {Promise}
    */
   rejectWithdrawal(withdrawalId, reason) {
-    return apiClient.put(`/api/withdrawals/${withdrawalId}/reject`, { reason })
+    return apiClient.put(`/api/withdrawals/${withdrawalId}/reject`, { reason }).then(r => r.data)
   },
 }
 

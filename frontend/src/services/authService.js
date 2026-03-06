@@ -7,7 +7,7 @@ export const authService = {
    * @returns {Promise}
    */
   register(userData) {
-    return apiClient.post('/api/auth/register', userData)
+    return apiClient.post('/api/auth/register', userData).then(r => r.data)
   },
 
   /**
@@ -17,7 +17,7 @@ export const authService = {
    * @returns {Promise}
    */
   login(email, password) {
-    return apiClient.post('/api/auth/login', { email, password })
+    return apiClient.post('/api/auth/login', { email, password }).then(r => r.data)
   },
 
   /**
@@ -25,7 +25,7 @@ export const authService = {
    * @returns {Promise}
    */
   getProfile() {
-    return apiClient.get('/api/users/me')
+    return apiClient.get('/api/users/me').then(r => r.data)
   },
 
   /**
@@ -34,7 +34,7 @@ export const authService = {
    * @returns {Promise}
    */
   updateProfile(userData) {
-    return apiClient.put('/api/users/me', userData)
+    return apiClient.put('/api/users/me', userData).then(r => r.data)
   },
 
   /**
@@ -93,7 +93,7 @@ export const authService = {
    * Logout (clear local storage)
    */
   logout() {
-    localStorage.removeItem('auth_token')
+    localStorage.removeItem('token')
     localStorage.removeItem('user')
   },
 
@@ -131,7 +131,7 @@ export const authService = {
    * @returns {boolean}
    */
   isAuthenticated() {
-    return !!localStorage.getItem('auth_token')
+    return !!localStorage.getItem('token')
   },
 
   /**
@@ -139,7 +139,7 @@ export const authService = {
    * @returns {string|null}
    */
   getToken() {
-    return localStorage.getItem('auth_token')
+    return localStorage.getItem('token')
   },
 
   /**
@@ -157,7 +157,7 @@ export const authService = {
    * @param {Object} user
    */
   setAuthData(token, user) {
-    localStorage.setItem('auth_token', token)
+    localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
   },
 }

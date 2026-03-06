@@ -4,6 +4,8 @@ import 'providers/providers.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/earnings_screen.dart';
 
 void main() {
   runApp(const BadNewsApp());
@@ -16,8 +18,11 @@ class BadNewsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => MessengerProvider()),
+        ChangeNotifierProvider(create: (_) => CallProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
         title: 'BadNews - Messenger',
@@ -72,6 +77,8 @@ class BadNewsApp extends StatelessWidget {
           '/': (context) => const SplashScreen(),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/earnings': (context) => const EarningsScreen(),
         },
       ),
     );
