@@ -18,7 +18,27 @@ builder.Configuration.Bind(settings);
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "BadNews API",
+        Version = "v1",
+        Description = "API para la plataforma BadNews: conecta compradores con mensajeros para realizar llamadas personalizadas."
+    });
+
+    // JWT Bearer security definition — adds the "Authorize" button to Swagger UI.
+    // Security requirements are enforced at the controller/action level via [Authorize].
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Ingresa el token JWT con el prefijo Bearer. Ejemplo: \"Bearer {token}\"",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+});
 
 // CORS
 builder.Services.AddCors(options =>
@@ -101,15 +121,18 @@ Console.WriteLine("Application built successfully");
 // app.UseErrorHandling();  // Temporarily disabled
 Console.WriteLine("ErrorHandling middleware disabled");
 
-// Enable Swagger for all environments
-app.UseSwagger();
-Console.WriteLine("Swagger enabled");
-app.UseSwaggerUI(c =>
+// Enable Swagger only in development environment
+if (app.Environment.IsDevelopment())
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BadNews API V1");
-    c.RoutePrefix = "swagger"; // Swagger available at /swagger
-});
-Console.WriteLine("SwaggerUI configured");
+    app.UseSwagger();
+    Console.WriteLine("Swagger enabled");
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BadNews API V1");
+        c.RoutePrefix = "swagger"; // Swagger available at /swagger
+    });
+    Console.WriteLine("SwaggerUI configured");
+}
 
 app.UseCors("AllowFrontend");
 Console.WriteLine("CORS configured");
