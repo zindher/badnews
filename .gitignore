@@ -57,3 +57,4 @@ pubspec.lock
 *.tmp
 .temp/
 temp/
+frontend/dist

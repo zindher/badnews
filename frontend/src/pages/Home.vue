@@ -11,6 +11,9 @@
         <div class="cta-buttons">
           <router-link to="/orders/new" class="btn btn-primary">Crear Encargo Ahora</router-link>
           <a href="#features" class="btn btn-secondary">Conocer Más</a>
+          <a :href="apkUrl" class="btn btn-download" download="gritalo.apk">
+            <span class="btn-download-icon">📲</span> Descargar App (Android)
+          </a>
         </div>
         <p class="hero-footer">✨ Profesionales verificados • 🔒 100% Anónimo • 📱 Disponible en móvil</p>
       </div>
@@ -194,6 +197,8 @@
 
 <script setup>
 import Logo from '../components/Logo.vue'
+
+const apkUrl = import.meta.env.VITE_APK_DOWNLOAD_URL || 'https://github.com/zindher/badnews/releases/latest/download/app-release.apk'
 </script>
 
 <style scoped>
@@ -201,5 +206,27 @@ import Logo from '../components/Logo.vue'
 .hero-logo :deep(.logo-full) {
   width: 240px;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #27ae60;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-download:hover {
+  background: #219a52;
+  transform: translateY(-1px);
+}
+
+.btn-download-icon {
+  font-size: 1.2rem;
 }
 </style>
